@@ -1,0 +1,5 @@
+name: 'PAPIProxyBridge'
+version: '${version}'
+author: 'William278'
+main: 'net.william278.papiproxybridge.BungeePAPIProxyBridge'
+description: 'Bridge plugin for using PlaceholderAPI on proxy servers'

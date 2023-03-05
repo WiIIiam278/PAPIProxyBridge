@@ -1,15 +1,10 @@
 dependencies {
     implementation project(path: ':common')
-    implementation 'org.bstats:bstats-bukkit:3.0.1'
 
-    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'org.jetbrains:annotations:24.0.1'
-    compileOnly 'me.clip:placeholderapi:2.11.2'
 }
 
 shadowJar {
-    relocate 'org.bstats', 'net.william278.papiproxybridge.libraries.bstats'
-
     relocate 'com.google', 'net.william278.papiproxybridge.libraries'
     relocate 'org.jetbrains', 'net.william278.huskchat.libraries'
     relocate 'org.intellij', 'net.william278.huskchat.libraries'

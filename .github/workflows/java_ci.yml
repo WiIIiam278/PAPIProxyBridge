@@ -29,29 +29,8 @@ jobs:
       - name: Get Version
         run: |
           echo "version_name=${{steps.fetch-version.outputs.VERSION_NAME}}" >> $GITHUB_ENV
-      # - name: Upload to Modrinth
-      #   uses: Kir-Antipov/mc-publish@v3.2
-      #   with:
-      #     modrinth-id: MODRINTH_ID
-      #     modrinth-featured: false
-      #     modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-      #     files-primary: target/HuskTemplate-Plugin-*.jar
-      #     name: HuskTemplate v${{ env.version_name }}
-      #     version: ${{ env.version_name }}
-      #     version-type: alpha
-      #     changelog: ${{ github.event.head_commit.message }}
-      #     loaders: |
-      #       spigot
-      #       paper
-      #       purpur
-      #     game-versions: |
-      #       1.16.5
-      #       1.17.1
-      #       1.18.2
-      #       1.19.2
-      #     java: 16
       - name: Upload GitHub Artifact
         uses: actions/upload-artifact@v2
         with:
           name: Plugin Jar
-          path: target/HuskTemplate-Plugin-*.jar
+          path: target/PAPIProxyBridge-Plugin-*.jar

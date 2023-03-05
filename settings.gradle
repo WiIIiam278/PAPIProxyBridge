@@ -4,8 +4,11 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'HuskTemplate'
+rootProject.name = 'PAPIProxyBridge'
 
 include 'common'
 include 'bukkit'
+include 'proxy'
+include 'bungee'
+include 'velocity'
 include 'plugin'

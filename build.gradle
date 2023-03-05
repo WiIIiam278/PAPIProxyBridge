@@ -12,8 +12,6 @@ version "$ext.plugin_version-${versionMetadata()}"
 
 ext {
     set 'version', version.toString()
-    set 'sqlite_driver_version', sqlite_driver_version.toString()
-    set 'mysql_driver_version', mysql_driver_version.toString()
 }
 
 allprojects {
@@ -29,8 +27,8 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+        maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
         maven { url 'https://repo.papermc.io/repository/maven-public/' }
-        maven { url 'https://repo.minebench.de/' }
         maven { url 'https://jitpack.io' }
     }
 
@@ -44,7 +42,7 @@ allprojects {
     }
 
     processResources {
-        filesNotMatching(['**/*.png', '**/*.svg']) {
+        filesMatching(['**/*.json', '**/*.yml']) {
             filter ReplaceTokens as Class, beginToken: '${', endToken: '}',
                     tokens: rootProject.ext.properties
         }
@@ -55,46 +53,17 @@ subprojects {
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
 
-    if (['bukkit', 'plugin'].contains(project.name)) {
+    if (['bukkit', 'bungee', 'velocity', 'plugin'].contains(project.name)) {
         shadowJar {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')
         }
-
-        // API publishing
-        if ('bukkit'.contains(project.name)) {
-            java {
-                withSourcesJar()
-                withJavadocJar()
-            }
-            sourcesJar {
-                destinationDirectory.set(file("$rootDir/target"))
-            }
-            javadocJar {
-                destinationDirectory.set(file("$rootDir/target"))
-            }
-            shadowJar.dependsOn(sourcesJar, javadocJar)
-
-            publishing {
-                publications {
-                    mavenJava(MavenPublication) {
-                        groupId = 'net.william278'
-                        artifactId = 'husktemplate'
-                        version = "$rootProject.version"
-                        artifact shadowJar
-                        artifact javadocJar
-                        artifact sourcesJar
-                    }
-                }
-            }
-        }
-
         jar.dependsOn shadowJar
         clean.delete "$rootDir/target"
     }
 }
 
-logger.lifecycle("Building HuskTemplate ${version} by William278")
+logger.lifecycle("Building PAPIProxyBridge ${version} by William278")
 
 @SuppressWarnings('GrMethodMayBeStatic')
 def versionMetadata() {
