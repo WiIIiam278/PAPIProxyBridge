@@ -3,6 +3,9 @@
     <a href="https://github.com/WiIIiam278/PAPIProxyBridge/actions/workflows/java_ci.yml">
         <img src="https://img.shields.io/github/actions/workflow/status/WiIIiam278/Velocitab/java_ci.yml?branch=master&logo=github"/>
     </a>
+    <a href="https://jitpack.io/#net.william278/PAPIProxyBridge">
+        <img src="https://img.shields.io/jitpack/version/net.william278/PAPIProxyBridge?color=%2300fb9a&label=api&logo=gradle" />
+    </a> 
     <a href="https://discord.gg/tVYhJfyDWG">
         <img src="https://img.shields.io/discord/818135932103557162.svg?label=&logo=discord&logoColor=fff&color=7389D8&labelColor=6A7EC2" />
     </a>
@@ -58,5 +61,7 @@ api.formatPlaceholders("Hello %player_name%!", player).thenAccept(formatted -> {
 ```
 
 Never invoke `#join()` on calls to `#formatPlaceholders`; this is unsafe.
+
+PAPIProxyBridge caches resolved requests for 30000 milliseconds (30 seconds), to avoid causing excessive traffic over your servers network channels.
 
 </details>
