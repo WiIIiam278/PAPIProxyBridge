@@ -3,16 +3,15 @@ plugins {
 }
 
 dependencies {
-    implementation 'com.google.guava:guava:31.1-jre'
     implementation 'net.jodah:expiringmap:0.5.10'
 
+    compileOnly 'com.google.guava:guava:31.1-jre'
     compileOnly 'org.jetbrains:annotations:24.0.1'
 }
 
 shadowJar {
-    relocate 'com.google', 'net.william278.papiproxybridge.libraries'
-    relocate 'org.jetbrains', 'net.william278.huskchat.libraries'
-    relocate 'org.intellij', 'net.william278.huskchat.libraries'
+    relocate 'org.jetbrains', 'net.william278.papiproxybridge.libraries'
+    relocate 'org.intellij', 'net.william278.papiproxybridge.libraries'
     relocate 'net.jodah', 'net.william278.papiproxybridge.libraries'
 }
 

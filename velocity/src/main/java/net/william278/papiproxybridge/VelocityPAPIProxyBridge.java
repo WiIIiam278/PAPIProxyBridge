@@ -1,5 +1,6 @@
 package net.william278.papiproxybridge;
 
+import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
@@ -12,38 +13,37 @@ import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.VelocityUser;
 import org.bstats.velocity.Metrics;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Plugin(id = "papiproxybridge")
 public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     private final Map<UUID, CompletableFuture<String>> requests;
     private final ChannelIdentifier channelIdentifier;
-    private final ProxyServer proxyServer;
+    private final ProxyServer server;
     private final Logger logger;
     private final Metrics.Factory metricsFactory;
 
     @Inject
-    public VelocityPAPIProxyBridge(@NotNull ProxyServer proxyServer, @NotNull Logger logger, @NotNull Metrics.Factory metricsFactory) {
-        this.requests = new HashMap<>();
-        this.channelIdentifier = new LegacyChannelIdentifier(getChannel());
-        this.proxyServer = proxyServer;
+    public VelocityPAPIProxyBridge(ProxyServer server, org.slf4j.Logger logger, Metrics.Factory metricsFactory) {
+        this.server = server;
         this.logger = logger;
         this.metricsFactory = metricsFactory;
+        this.requests = new HashMap<>();
+        this.channelIdentifier = new LegacyChannelIdentifier(getChannel());
     }
 
     @Subscribe
     public void onProxyInitialization(@NotNull ProxyInitializeEvent event) {
         // Register the plugin message channel
-        proxyServer.getChannelRegistrar().register(getChannelIdentifier());
+        server.getChannelRegistrar().register(getChannelIdentifier());
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
@@ -51,7 +51,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         // Setup metrics
         metricsFactory.make(this, 17878);
 
-        logger.info("PAPIProxyBridge" + proxyServer.getVersion().getName() + " has been enabled!");
+        logger.info("PAPIProxyBridge (" + server.getVersion().getName() + ") has been enabled!");
     }
 
     @Subscribe
@@ -62,9 +62,9 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Override
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions) {
         if (exceptions.length > 0) {
-            logger.log(level, message, exceptions[0]);
+            logger.error(message, exceptions[0]);
         } else {
-            logger.log(level, message);
+            logger.info(message);
         }
     }
 
@@ -76,12 +76,12 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
-        return proxyServer.getPlayer(uuid).map(VelocityUser::adapt);
+        return server.getPlayer(uuid).map(VelocityUser::adapt);
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull String username) {
-        return proxyServer.getPlayer(username).map(VelocityUser::adapt);
+        return server.getPlayer(username).map(VelocityUser::adapt);
     }
 
     @NotNull
