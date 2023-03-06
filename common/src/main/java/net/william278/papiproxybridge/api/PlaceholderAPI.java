@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
  * <p>
  * Example:
  * <pre>{@code
- *     final ProxyPlaceholderApi api = ProxyPlaceholderApi.getInstance();
+ *     final PlaceholderAPI api = PlaceholderAPI.getInstance();
  *     final UUID player = player.getUniqueId();
  *     api.formatPlaceholders("Hello %player_name%!", player).thenAccept(formatted -> {
  *         player.sendMessage(formatted);

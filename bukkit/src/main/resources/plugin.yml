@@ -1,8 +1,8 @@
 name: 'PAPIProxyBridge'
-description: 'Bridge plugin for using PlaceholderAPI on proxy servers'
+description: 'A bridge library plugin for using PlaceholderAPI on proxy servers'
 author: 'William278'
 website: 'https://william278.net/'
-main: 'net.william278.papiproxybridge.BukkitPAPIProxyBridge'
 version: '${version}'
+main: 'net.william278.papiproxybridge.BukkitPAPIProxyBridge'
 api-version: 1.16
 depend: [ PlaceholderAPI ]
