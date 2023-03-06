@@ -25,6 +25,6 @@ public class BungeeUser implements ProxyUser {
 
     @Override
     public void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
-        player.sendData(channel, message);
+        player.getServer().getInfo().sendData(channel, message);
     }
 }

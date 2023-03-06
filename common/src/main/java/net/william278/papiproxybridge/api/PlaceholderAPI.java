@@ -26,11 +26,13 @@ import java.util.concurrent.CompletableFuture;
  */
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
+    private static final int PLACEHOLDER_REQUEST_TIMEOUT = 400;
     private static PlaceholderAPI instance;
     private final PAPIProxyBridge plugin;
 
     /**
      * <b>Internal only</b> - Create a new instance of the API
+     *
      * @param plugin The plugin to register
      */
     private PlaceholderAPI(@NotNull PAPIProxyBridge plugin) {
@@ -56,9 +58,6 @@ public final class PlaceholderAPI {
      * @param plugin The plugin to register
      */
     public static void register(@NotNull PAPIProxyBridge plugin) {
-        if (instance != null) {
-            throw new IllegalStateException("ProxyPlaceholderApi is already initialized");
-        }
         instance = new PlaceholderAPI(plugin);
     }
 
@@ -70,7 +69,9 @@ public final class PlaceholderAPI {
      * @return A future that will supply the formatted text
      */
     public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser player) {
-        return plugin.createRequest(text, player);
+        return plugin.createRequest(text, player)
+                .orTimeout(PLACEHOLDER_REQUEST_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
+                .exceptionally(throwable -> text);
     }
 
     /**

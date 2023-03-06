@@ -4,7 +4,6 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
-import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
@@ -33,7 +32,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Inject
     public VelocityPAPIProxyBridge(@NotNull ProxyServer proxyServer, @NotNull Logger logger) {
         this.requests = new HashMap<>();
-        this.channelIdentifier = new LegacyChannelIdentifier(OnlineUser.BUNGEE_CHANNEL_ID);
+        this.channelIdentifier = new LegacyChannelIdentifier(getChannel());
         this.proxyServer = proxyServer;
         this.logger = logger;
     }
@@ -41,17 +40,17 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Subscribe
     public void onProxyInitialization(@NotNull ProxyInitializeEvent event) {
         // Register the plugin message channel
-        proxyServer.getChannelRegistrar().register(channelIdentifier);
+        proxyServer.getChannelRegistrar().register(getChannelIdentifier());
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
+
+        logger.info("PAPIProxyBridge has been enabled!");
     }
 
     @Subscribe
     public void onPluginMessageReceived(@NotNull PluginMessageEvent event) {
-        if (event.getSource() instanceof Player sender) {
-            VelocityUser.adapt(sender).handlePluginMessage(this, event.getIdentifier().getId(), event.getData());
-        }
+        handlePluginMessage(this, event.getIdentifier().getId(), event.getData());
     }
 
     @Override
@@ -74,8 +73,13 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         return proxyServer.getPlayer(uuid).map(VelocityUser::adapt);
     }
 
+    @Override
+    public Optional<OnlineUser> findPlayer(@NotNull String username) {
+        return proxyServer.getPlayer(username).map(VelocityUser::adapt);
+    }
+
     @NotNull
-    public ChannelIdentifier getBungeeChannel() {
+    public ChannelIdentifier getChannelIdentifier() {
         return channelIdentifier;
     }
 }

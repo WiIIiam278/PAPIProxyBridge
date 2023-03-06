@@ -26,22 +26,30 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public void onEnable() {
         // Register the plugin message channel
-        getServer().getMessenger().registerOutgoingPluginChannel(this, OnlineUser.BUNGEE_CHANNEL_ID);
-        getServer().getMessenger().registerIncomingPluginChannel(this, OnlineUser.BUNGEE_CHANNEL_ID, this);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, getChannel());
+        getServer().getMessenger().registerIncomingPluginChannel(this, getChannel(), this);
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
+
+        getLogger().info("PAPIProxyBridge has been enabled!");
     }
 
     @Override
-    @NotNull
-    public String getChannelKey() {
-        return "response";
+    public void onDisable() {
+        // Unregister the plugin message channel
+        getServer().getMessenger().unregisterOutgoingPluginChannel(this);
+        getServer().getMessenger().unregisterIncomingPluginChannel(this);
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
         return Optional.ofNullable(getServer().getPlayer(uuid)).map(BukkitUser::adapt);
+    }
+
+    @Override
+    public Optional<OnlineUser> findPlayer(@NotNull String username) {
+        return Optional.ofNullable(getServer().getPlayerExact(username)).map(BukkitUser::adapt);
     }
 
     @Override
@@ -60,7 +68,8 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte[] message) {
-        BukkitUser.adapt(player).handlePluginMessage(this, channel, message);
+        log(Level.INFO, "Received plugin message from " + player.getName() + " on channel " + channel);
+        this.handlePluginMessage(this, channel, message);
     }
 
     @NotNull

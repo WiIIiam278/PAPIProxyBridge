@@ -1,6 +1,5 @@
 package net.william278.papiproxybridge;
 
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -31,13 +30,22 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
+
+        getLogger().info("PAPIProxyBridge has been enabled!");
+    }
+
+    @Override
+    public void onDisable() {
+        // Unregister the plugin message channel
+        getProxy().unregisterChannel(getChannel());
+
+        // Unregister the plugin message listener
+        getProxy().getPluginManager().unregisterListener(this);
     }
 
     @EventHandler
     public void onPluginMessageReceived(PluginMessageEvent event) {
-        if (event.getSender() instanceof ProxiedPlayer sender) {
-            BungeeUser.adapt(sender).handlePluginMessage(this, event.getTag(), event.getData());
-        }
+        this.handlePluginMessage(this, event.getTag(), event.getData());
     }
 
     @Override
@@ -49,6 +57,11 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
         return Optional.ofNullable(getProxy().getPlayer(uuid)).map(BungeeUser::adapt);
+    }
+
+    @Override
+    public Optional<OnlineUser> findPlayer(@NotNull String username) {
+        return Optional.ofNullable(getProxy().getPlayer(username)).map(BungeeUser::adapt);
     }
 
     @Override
