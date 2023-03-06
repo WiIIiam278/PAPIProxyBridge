@@ -10,6 +10,7 @@ import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.VelocityUser;
+import org.bstats.velocity.Metrics;
 import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
@@ -28,13 +29,15 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     private final ChannelIdentifier channelIdentifier;
     private final ProxyServer proxyServer;
     private final Logger logger;
+    private final Metrics.Factory metricsFactory;
 
     @Inject
-    public VelocityPAPIProxyBridge(@NotNull ProxyServer proxyServer, @NotNull Logger logger) {
+    public VelocityPAPIProxyBridge(@NotNull ProxyServer proxyServer, @NotNull Logger logger, @NotNull Metrics.Factory metricsFactory) {
         this.requests = new HashMap<>();
         this.channelIdentifier = new LegacyChannelIdentifier(getChannel());
         this.proxyServer = proxyServer;
         this.logger = logger;
+        this.metricsFactory = metricsFactory;
     }
 
     @Subscribe
@@ -45,7 +48,10 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         // Register the plugin with the API
         PlaceholderAPI.register(this);
 
-        logger.info("PAPIProxyBridge has been enabled!");
+        // Setup metrics
+        metricsFactory.make(this, 17878);
+
+        logger.info("PAPIProxyBridge" + proxyServer.getVersion().getName() + " has been enabled!");
     }
 
     @Subscribe

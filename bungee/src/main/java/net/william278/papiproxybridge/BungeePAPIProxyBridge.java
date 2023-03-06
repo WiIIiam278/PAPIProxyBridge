@@ -7,6 +7,7 @@ import net.md_5.bungee.event.EventHandler;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.user.BungeeUser;
 import net.william278.papiproxybridge.user.OnlineUser;
+import org.bstats.bungeecord.Metrics;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -31,7 +32,10 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
         // Register the plugin with the API
         PlaceholderAPI.register(this);
 
-        getLogger().info("PAPIProxyBridge has been enabled!");
+        // Metrics
+        new Metrics(this, 17879);
+
+        getLogger().info("PAPIProxyBridge (" + getProxy().getName() + ") has been enabled!");
     }
 
     @Override

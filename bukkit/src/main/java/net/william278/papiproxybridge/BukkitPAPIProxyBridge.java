@@ -4,6 +4,7 @@ import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.papi.Formatter;
 import net.william278.papiproxybridge.user.BukkitUser;
 import net.william278.papiproxybridge.user.OnlineUser;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -32,7 +33,10 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         // Register the plugin with the API
         PlaceholderAPI.register(this);
 
-        getLogger().info("PAPIProxyBridge has been enabled!");
+        // Metrics
+        new Metrics(this, 17880);
+
+        getLogger().info("PAPIProxyBridge (" + getServer().getName() + ") has been enabled!");
     }
 
     @Override

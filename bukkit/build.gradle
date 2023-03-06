@@ -1,5 +1,6 @@
 dependencies {
     implementation project(path: ':common')
+
     implementation 'org.bstats:bstats-bukkit:3.0.1'
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
@@ -13,4 +14,5 @@ shadowJar {
     relocate 'com.google', 'net.william278.papiproxybridge.libraries'
     relocate 'org.jetbrains', 'net.william278.huskchat.libraries'
     relocate 'org.intellij', 'net.william278.huskchat.libraries'
+    relocate 'net.jodah', 'net.william278.papiproxybridge.libraries'
 }

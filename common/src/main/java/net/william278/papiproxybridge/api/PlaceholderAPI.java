@@ -1,11 +1,13 @@
 package net.william278.papiproxybridge.api;
 
+import net.jodah.expiringmap.ExpiringMap;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The main API for the ProxyPlaceholderAPI plugin
@@ -26,9 +28,13 @@ import java.util.concurrent.CompletableFuture;
  */
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
+    // The timeout for requesting formatting from the proxy in milliseconds
     private static final int PLACEHOLDER_REQUEST_TIMEOUT = 400;
+    // The expiry time for the cache in milliseconds
+    private static final int PLACEHOLDER_CACHE_EXPIRY = 30000;
     private static PlaceholderAPI instance;
     private final PAPIProxyBridge plugin;
+    private final ExpiringMap<String, String> cache;
 
     /**
      * <b>Internal only</b> - Create a new instance of the API
@@ -37,6 +43,9 @@ public final class PlaceholderAPI {
      */
     private PlaceholderAPI(@NotNull PAPIProxyBridge plugin) {
         this.plugin = plugin;
+        this.cache = ExpiringMap.builder()
+                .expiration(PLACEHOLDER_CACHE_EXPIRY, TimeUnit.MILLISECONDS)
+                .build();
     }
 
     /**
@@ -69,7 +78,14 @@ public final class PlaceholderAPI {
      * @return A future that will supply the formatted text
      */
     public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser player) {
+        if (cache.containsKey(text)) {
+            return CompletableFuture.completedFuture(cache.get(text));
+        }
         return plugin.createRequest(text, player)
+                .thenApply(formatted -> {
+                    cache.put(text, formatted);
+                    return formatted;
+                })
                 .orTimeout(PLACEHOLDER_REQUEST_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
                 .exceptionally(throwable -> text);
     }
