@@ -36,7 +36,6 @@ public interface PAPIProxyBridge {
 
     @SuppressWarnings("UnstableApiUsage")
     default void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
-        plugin.log(Level.INFO, "Received plugin message from on channel " + channel);
         if (!channel.equals(plugin.getChannel())) {
             return;
         }
@@ -53,9 +52,7 @@ public interface PAPIProxyBridge {
         inputStream.readFully(messageBody);
 
         try (final DataInputStream messageReader = new DataInputStream(new ByteArrayInputStream(messageBody))) {
-            final String read = messageReader.readUTF();
-            plugin.log(Level.INFO, "Handling plugin message: " + read);
-            user.handlePluginMessage(plugin, Request.fromString(read));
+            user.handlePluginMessage(plugin, Request.fromString(messageReader.readUTF()));
         } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to fully read plugin message", e);
         }

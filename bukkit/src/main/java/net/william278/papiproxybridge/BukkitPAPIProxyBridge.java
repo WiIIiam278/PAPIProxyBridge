@@ -72,7 +72,6 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte[] message) {
-        log(Level.INFO, "Received plugin message from " + player.getName() + " on channel " + channel);
         this.handlePluginMessage(this, channel, message);
     }
 

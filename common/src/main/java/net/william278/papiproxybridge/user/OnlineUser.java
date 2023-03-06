@@ -34,7 +34,6 @@ public interface OnlineUser {
             return;
         }
 
-        plugin.log(Level.INFO, "Sending plugin message: " + request);
         this.sendPluginMessage(plugin, plugin.getChannel(), messageWriter.toByteArray());
     }
 
