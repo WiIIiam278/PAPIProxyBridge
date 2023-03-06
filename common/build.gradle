@@ -21,7 +21,7 @@ publishing {
             artifactId = 'papiproxybridge'
             version = "$rootProject.version"
 
-            artifact shadowJar
+            artifact jar
         }
     }
 }
