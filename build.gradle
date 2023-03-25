@@ -54,7 +54,7 @@ subprojects {
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
 
-    if (['bukkit', 'bungee', 'velocity', 'plugin', 'fabric'].contains(project.name)) {
+    if (['bukkit', 'bungee', 'velocity', 'plugin'].contains(project.name)) {
         shadowJar {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')
