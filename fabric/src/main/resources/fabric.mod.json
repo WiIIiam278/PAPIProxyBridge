@@ -1,0 +1,32 @@
+{
+    "schemaVersion": 1,
+    "id": "papiproxybridge",
+    "version": "${version}",
+    "name": "PAPIProxyBridge",
+    "description": "A bridge library mod for using PlaceholderAPI on proxy servers",
+    "authors": [
+        "WiIIiam278"
+    ],
+    "contributors": [
+        "Awakened Redstone"
+    ],
+    "contact": {
+        "repo": "https://github.com/WiIIiam278/PAPIProxyBridge"
+    },
+    "license": "Apache-2.0",
+    "environment": "server",
+    "entrypoints": {
+        "main": [
+            "net.william278.papiproxybridge.FabricPAPIProxyBridge"
+        ]
+    },
+    "mixins": [
+        "papiproxybridge.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=0.14.17",
+        "minecraft": "1.19.3",
+        "fabric-api": "*",
+        "placeholder-api": "*"
+    }
+}
