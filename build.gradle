@@ -3,8 +3,8 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.0'
     id 'org.ajoberstar.grgit' version '5.0.0'
-    id 'java'
     id 'maven-publish'
+    id 'java'
 }
 
 group 'net.william278'
@@ -26,6 +26,7 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url 'https://maven.fabricmc.net/' } //Fabric maven is above paper maven to get FabricAPi from it over PaperMC
         maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
         maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
         maven { url 'https://repo.papermc.io/repository/maven-public/' }
