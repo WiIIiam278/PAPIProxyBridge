@@ -11,14 +11,14 @@
     </a>
 </p>
 <br/>
-PAPIProxyBridge is a library bridge plugin you install on both your backend and proxy servers that allows proxy plugins to format text with Placeholder API placeholders.
+PAPIProxyBridge is a library bridge plugin you install on both your backend and proxy servers that allows proxy plugins to format text with PlaceholderAPI placeholders.
 
 ## For server owners
 This is a library plugin intended for use with plugins that implement its API. There is nothing to configure.
 
-Install the latest version of the plugin alongside PlaceholderAPI on your Spigot server, then install the plugin on your BungeeCord or Velocity proxy server.
+Install the latest version of the plugin alongside the [PlaceholderAPI plugin](https://www.spigotmc.org/resources/placeholderapi.6245/) on your Spigot (1.16.5+) or the [PlaceholderAPI mod](https://placeholders.pb4.eu/) on your Fabric (1.19.3+) server, then install the plugin on your BungeeCord or Velocity proxy server.
 
-Note this plugin is not a replacement for PlaceholderAPI. You still need to install PlaceholderAPI on your Spigot server.
+Note this plugin is not a replacement for PlaceholderAPI. You still need to install PlaceholderAPI on your Spigot/Fabric server.
 
 ## For developers
 PAPIProxyBridge exposes a cross-platform API to let you format text with PlaceholderAPI placeholders.
