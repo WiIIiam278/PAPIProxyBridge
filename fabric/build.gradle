@@ -9,7 +9,7 @@ repositories {
 dependencies {
     minecraft "com.mojang:minecraft:1.19.3"
     mappings "net.fabricmc:yarn:1.19.3+build.5:v2"
-    modCompileOnly "net.fabricmc:fabric-loader:0.14.17"
+    modCompileOnly "net.fabricmc:fabric-loader:0.14.18"
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:0.76.0+1.19.3"
     modCompileOnly "eu.pb4:placeholder-api:2.0.0-pre.3+1.19.3"
 
