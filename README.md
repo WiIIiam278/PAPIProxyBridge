@@ -64,6 +64,6 @@ api.formatPlaceholders("Hello %player_name%!", player).thenAccept(formatted -> {
 
 Never invoke `#join()` on calls to `#formatPlaceholders`; this is unsafe.
 
-PAPIProxyBridge caches resolved requests for 30000 milliseconds (30 seconds), to avoid causing excessive traffic over your servers network channels. You can adjust how long to cache for using the `PlaceholderAPI#`
+PAPIProxyBridge caches resolved requests for 30000 milliseconds (30 seconds), to avoid causing excessive traffic over your servers network channels. You can adjust how long to cache requests for using the `PlaceholderAPI#setCacheExpiry(long)` method.
 
 </details>
