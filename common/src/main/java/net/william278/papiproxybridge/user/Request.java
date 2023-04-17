@@ -47,11 +47,15 @@ public final class Request {
 
     @NotNull
     public static Request fromString(@NotNull String string) {
-        return new Request(
-                UUID.fromString(string.substring(0, 36)),
-                UUID.fromString(string.substring(36, 72)),
-                string.substring(72)
-        );
+        try {
+            return new Request(
+                    UUID.fromString(string.substring(0, 36)),
+                    UUID.fromString(string.substring(36, 72)),
+                    string.substring(72)
+            );
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid request string (is PAPIProxyBridge up-to-date on all servers and your proxy?): " + string);
+        }
     }
 
     @NotNull
