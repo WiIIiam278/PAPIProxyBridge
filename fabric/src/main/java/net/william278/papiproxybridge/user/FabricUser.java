@@ -11,6 +11,8 @@ import net.william278.papiproxybridge.FabricPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 public class FabricUser implements OnlineUser {
 
     private final ServerPlayerEntity player;
@@ -28,6 +30,12 @@ public class FabricUser implements OnlineUser {
     @NotNull
     public String getUsername() {
         return player.getName().getString();
+    }
+
+    @Override
+    @NotNull
+    public UUID getUniqueId() {
+        return player.getUuid();
     }
 
     @Override

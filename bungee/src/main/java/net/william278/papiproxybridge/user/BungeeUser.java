@@ -4,6 +4,8 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 public class BungeeUser implements ProxyUser {
 
     private final ProxiedPlayer player;
@@ -21,6 +23,12 @@ public class BungeeUser implements ProxyUser {
     @NotNull
     public String getUsername() {
         return player.getName();
+    }
+
+    @Override
+    @NotNull
+    public UUID getUniqueId() {
+        return player.getUniqueId();
     }
 
     @Override

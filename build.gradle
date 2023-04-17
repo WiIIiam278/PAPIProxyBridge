@@ -2,6 +2,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'org.cadixdev.licenser' version '0.6.1'
     id 'org.ajoberstar.grgit' version '5.0.0'
     id 'maven-publish'
     id 'java'
@@ -9,9 +10,12 @@ plugins {
 
 group 'net.william278'
 version "$ext.plugin_version-${versionMetadata()}"
+description "$ext.plugin_description"
+defaultTasks 'licenseFormat', 'build'
 
 ext {
     set 'version', version.toString()
+    set 'description', description.toString()
 }
 
 allprojects {
@@ -40,6 +44,12 @@ allprojects {
 
     test {
         useJUnitPlatform()
+    }
+
+    license {
+        header = rootProject.file('HEADER')
+        include '**/*.java'
+        newLine = true
     }
 
     processResources {

@@ -5,6 +5,8 @@ import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -28,13 +30,11 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
-    // The timeout for requesting formatting from the proxy in milliseconds
-    private static final int PLACEHOLDER_REQUEST_TIMEOUT = 400;
-    // The expiry time for the cache in milliseconds
-    private static final int PLACEHOLDER_CACHE_EXPIRY = 30000;
     private static PlaceholderAPI instance;
     private final PAPIProxyBridge plugin;
-    private final ExpiringMap<String, String> cache;
+    private final Map<UUID, ExpiringMap<String, String>> cache;
+    private long requestTimeout = 400;
+    private long cacheExpiry = 30000;
 
     /**
      * <b>Internal only</b> - Create a new instance of the API
@@ -43,9 +43,7 @@ public final class PlaceholderAPI {
      */
     private PlaceholderAPI(@NotNull PAPIProxyBridge plugin) {
         this.plugin = plugin;
-        this.cache = ExpiringMap.builder()
-                .expiration(PLACEHOLDER_CACHE_EXPIRY, TimeUnit.MILLISECONDS)
-                .build();
+        this.cache = new HashMap<>();
     }
 
     /**
@@ -78,15 +76,18 @@ public final class PlaceholderAPI {
      * @return A future that will supply the formatted text
      */
     public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser player) {
-        if (cache.containsKey(text)) {
-            return CompletableFuture.completedFuture(cache.get(text));
+        if (cache.containsKey(player.getUniqueId()) && cache.get(player.getUniqueId()).containsKey(text)) {
+            return CompletableFuture.completedFuture(cache.get(player.getUniqueId()).get(text));
         }
         return plugin.createRequest(text, player)
                 .thenApply(formatted -> {
-                    cache.put(text, formatted);
+                    cache.computeIfAbsent(player.getUniqueId(), uuid -> ExpiringMap.builder()
+                                    .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
+                                    .build())
+                            .put(text, formatted);
                     return formatted;
                 })
-                .orTimeout(PLACEHOLDER_REQUEST_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
+                .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
                 .exceptionally(throwable -> text);
     }
 
@@ -103,4 +104,25 @@ public final class PlaceholderAPI {
                 .orElseThrow(() -> new IllegalArgumentException("Player not found")));
     }
 
+    /**
+     * Set the timeout for requesting formatting from the proxy in milliseconds
+     * <p>
+     * The default value is 400 milliseconds (0.4 seconds)
+     *
+     * @param requestTimeout The timeout for requesting formatting from the proxy in milliseconds
+     */
+    public void setRequestTimeout(long requestTimeout) {
+        this.requestTimeout = requestTimeout;
+    }
+
+    /**
+     * Set the expiry time for the cache in milliseconds
+     * <p>
+     * The default value is 30000 milliseconds (30 seconds)
+     *
+     * @param cacheExpiry The expiry time for the cache in milliseconds
+     */
+    public void setCacheExpiry(long cacheExpiry) {
+        this.cacheExpiry = cacheExpiry;
+    }
 }

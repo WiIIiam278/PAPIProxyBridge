@@ -5,6 +5,7 @@ import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.VelocityPAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class VelocityUser implements ProxyUser {
@@ -24,6 +25,12 @@ public class VelocityUser implements ProxyUser {
     @NotNull
     public String getUsername() {
         return player.getUsername();
+    }
+
+    @Override
+    @NotNull
+    public UUID getUniqueId() {
+        return player.getUniqueId();
     }
 
     @Override

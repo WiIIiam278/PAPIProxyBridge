@@ -3,7 +3,7 @@
     "id": "papiproxybridge",
     "version": "${version}",
     "name": "PAPIProxyBridge",
-    "description": "A bridge library mod for using PlaceholderAPI on proxy servers",
+    "description": "${description}",
     "authors": [
         "WiIIiam278"
     ],

@@ -8,12 +8,16 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public interface OnlineUser {
 
     @NotNull
     String getUsername();
+
+    @NotNull
+    UUID getUniqueId();
 
     void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message);
 

@@ -2,7 +2,7 @@
   "id": "papiproxybridge",
   "name": "PAPIProxyBridge",
   "version": "${version}",
-  "description": "A bridge library plugin for using PlaceholderAPI on proxy servers",
+  "description": "${description}",
   "url": "https://william278.net",
   "authors": [
     "William278"

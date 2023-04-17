@@ -5,6 +5,8 @@ import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 public final class BukkitUser implements OnlineUser {
 
     private final Player player;
@@ -22,6 +24,12 @@ public final class BukkitUser implements OnlineUser {
     @NotNull
     public String getUsername() {
         return player.getName();
+    }
+
+    @Override
+    @NotNull
+    public UUID getUniqueId() {
+        return player.getUniqueId();
     }
 
     @Override
