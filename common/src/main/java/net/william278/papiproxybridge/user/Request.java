@@ -42,7 +42,7 @@ public final class Request {
 
     @Override
     public String toString() {
-        return uuid.toString() + message;
+        return uuid.toString() + formatFor.toString() + message;
     }
 
     @NotNull
