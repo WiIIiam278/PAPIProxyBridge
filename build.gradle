@@ -20,6 +20,7 @@ ext {
 
 allprojects {
     apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'java'
 
     compileJava.options.encoding = 'UTF-8'
