@@ -1,3 +1,5 @@
+<!--suppress ALL -->
+<h4>
 <p align="center">
     <img src="images/banner.png" alt="PAPIProxyBridge" />
     <a href="https://github.com/WiIIiam278/PAPIProxyBridge/actions/workflows/java_ci.yml">
@@ -11,7 +13,9 @@
     </a>
 </p>
 <br/>
-PAPIProxyBridge is a library bridge plugin you install on both your backend and proxy servers that allows proxy plugins to format text with PlaceholderAPI placeholders.
+</h4>
+
+**PAPIProxyBridge** is a library bridge plugin you install on both your backend and proxy servers that allows proxy plugins to format text with PlaceholderAPI placeholders.
 
 ## For server owners
 This is a library plugin intended for use with plugins that implement its API. There is nothing to configure.
