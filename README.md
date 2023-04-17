@@ -38,7 +38,7 @@ repositories {
 Then add the dependency:
 ```groovy
 dependencies {
-    implementation 'net.william278:PAPIProxyBridge:1.0'
+    implementation 'net.william278:PAPIProxyBridge:1.2'
 }
 ```
 
@@ -64,6 +64,6 @@ api.formatPlaceholders("Hello %player_name%!", player).thenAccept(formatted -> {
 
 Never invoke `#join()` on calls to `#formatPlaceholders`; this is unsafe.
 
-PAPIProxyBridge caches resolved requests for 30000 milliseconds (30 seconds), to avoid causing excessive traffic over your servers network channels.
+PAPIProxyBridge caches resolved requests for 30000 milliseconds (30 seconds), to avoid causing excessive traffic over your servers network channels. You can adjust how long to cache for using the `PlaceholderAPI#`
 
 </details>

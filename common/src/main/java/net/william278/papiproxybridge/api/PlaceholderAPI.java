@@ -138,13 +138,13 @@ public final class PlaceholderAPI {
      * @param text      The text to format
      * @param requester The {@link UUID unique id} of the player used to request the formatting. Note that this user must be online.
      * @param formatFor The {@link UUID unique id} of the player to format the text for
-     * @return A future that will supply the formatted text
-     * @throws IllegalArgumentException If the requesting player could not be resolved from their {@link UUID}
+     * @return A future that will supply the formatted text. If the requester is not online, the original text will be returned
      * @since 1.2
      */
     public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull UUID requester, @NotNull UUID formatFor) {
-        return formatPlaceholders(text, plugin.findPlayer(requester)
-                .orElseThrow(() -> new IllegalArgumentException("Requesting player is not online")), formatFor);
+        return plugin.findPlayer(requester)
+                .map(onlineRequester -> formatPlaceholders(text, onlineRequester, formatFor))
+                .orElse(CompletableFuture.completedFuture(text));
     }
 
     /**
@@ -152,13 +152,13 @@ public final class PlaceholderAPI {
      *
      * @param text   The text to format
      * @param player The {@link UUID unique id} of the player to format the text for. Note that this user must be online.
-     * @return A future that will supply the formatted text
-     * @throws IllegalArgumentException If the player could not be resolved from their {@link UUID}
+     * @return A future that will supply the formatted text. If the player is not online, the original text will be returned
      * @since 1.0
      */
-    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull UUID player) throws IllegalArgumentException {
-        return formatPlaceholders(text, plugin.findPlayer(player)
-                .orElseThrow(() -> new IllegalArgumentException("Player not found")));
+    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull UUID player) {
+        return plugin.findPlayer(player)
+                .map(requester -> formatPlaceholders(text, requester, player))
+                .orElse(CompletableFuture.completedFuture(text));
     }
 
     /**
