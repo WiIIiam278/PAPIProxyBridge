@@ -25,15 +25,18 @@ import java.util.UUID;
 
 public final class Request {
     private final UUID uuid;
+    private final UUID formatFor;
     private String message;
 
-    public Request(@NotNull String message) {
+    public Request(@NotNull String message, @NotNull UUID formatFor) {
         this.uuid = UUID.randomUUID();
+        this.formatFor = formatFor;
         this.message = message;
     }
 
-    private Request(@NotNull UUID uuid, @NotNull String message) {
+    private Request(@NotNull UUID uuid, @NotNull UUID formatFor, @NotNull String message) {
         this.uuid = uuid;
+        this.formatFor = formatFor;
         this.message = message;
     }
 
@@ -44,12 +47,21 @@ public final class Request {
 
     @NotNull
     public static Request fromString(@NotNull String string) {
-        return new Request(UUID.fromString(string.substring(0, 36)), string.substring(36));
+        return new Request(
+                UUID.fromString(string.substring(0, 36)),
+                UUID.fromString(string.substring(36, 72)),
+                string.substring(72)
+        );
     }
 
     @NotNull
     public UUID getUuid() {
         return uuid;
+    }
+
+    @NotNull
+    public UUID getFormatFor() {
+        return formatFor;
     }
 
     @NotNull

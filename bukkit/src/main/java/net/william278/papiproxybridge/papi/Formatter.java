@@ -20,14 +20,20 @@
 package net.william278.papiproxybridge.papi;
 
 import me.clip.placeholderapi.PlaceholderAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 public class Formatter {
 
     @NotNull
-    public final String formatPlaceholders(@NotNull Player player, @NotNull String text) {
-        return PlaceholderAPI.setPlaceholders(player, text);
+    public final String formatPlaceholders(@NotNull UUID formatFor, @NotNull Player requester, @NotNull String text) {
+        return PlaceholderAPI.setPlaceholders(
+                requester.getUniqueId().equals(formatFor) ? requester : Bukkit.getOfflinePlayer(formatFor),
+                text
+        );
     }
 
 }

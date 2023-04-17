@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
+
     private static PlaceholderAPI instance;
     private final PAPIProxyBridge plugin;
     private final Map<UUID, ExpiringMap<String, String>> cache;
@@ -69,6 +70,7 @@ public final class PlaceholderAPI {
      * Get the instance of the API. This is the entry point for the API
      *
      * @return The instance of the API
+     * @since 1.0
      */
     @NotNull
     public static PlaceholderAPI getInstance() {
@@ -89,18 +91,23 @@ public final class PlaceholderAPI {
 
     /**
      * Format the text with the placeholders of the player
+     * <p>
+     * This method accepts the {@link UUID unique id} of a player who will be passed as the user for formatting the placeholders;
+     * distinct from the player dispatching the plugin message across the network.
      *
-     * @param text   The text to format
-     * @param player The player to format the text for
+     * @param text      The text to format
+     * @param requester The player used to request the formatting
+     * @param formatFor The player to format the text for
      * @return A future that will supply the formatted text
+     * @since 1.2
      */
-    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser player) {
-        if (cache.containsKey(player.getUniqueId()) && cache.get(player.getUniqueId()).containsKey(text)) {
-            return CompletableFuture.completedFuture(cache.get(player.getUniqueId()).get(text));
+    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+        if (cacheExpiry > 0 && cache.containsKey(formatFor) && cache.get(formatFor).containsKey(text)) {
+            return CompletableFuture.completedFuture(cache.get(formatFor).get(text));
         }
-        return plugin.createRequest(text, player)
+        return plugin.createRequest(text, requester, formatFor)
                 .thenApply(formatted -> {
-                    cache.computeIfAbsent(player.getUniqueId(), uuid -> ExpiringMap.builder()
+                    cache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
                                     .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
                                     .build())
                             .put(text, formatted);
@@ -114,9 +121,40 @@ public final class PlaceholderAPI {
      * Format the text with the placeholders of the player
      *
      * @param text   The text to format
-     * @param player The {@link UUID unique id} of the player to format the text for
+     * @param player The player to format the text for
+     * @return A future that will supply the formatted text
+     * @since 1.0
+     */
+    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser player) {
+        return formatPlaceholders(text, player, player.getUniqueId());
+    }
+
+    /**
+     * Format the text with the placeholders of the player
+     * <p>
+     * This method accepts the {@link UUID unique id} of a player who will be passed as the user for formatting the placeholders;
+     * distinct from the player dispatching the plugin message across the network.
+     *
+     * @param text      The text to format
+     * @param requester The {@link UUID unique id} of the player used to request the formatting. Note that this user must be online.
+     * @param formatFor The {@link UUID unique id} of the player to format the text for
+     * @return A future that will supply the formatted text
+     * @throws IllegalArgumentException If the requesting player could not be resolved from their {@link UUID}
+     * @since 1.2
+     */
+    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull UUID requester, @NotNull UUID formatFor) {
+        return formatPlaceholders(text, plugin.findPlayer(requester)
+                .orElseThrow(() -> new IllegalArgumentException("Requesting player is not online")), formatFor);
+    }
+
+    /**
+     * Format the text with the placeholders of the player
+     *
+     * @param text   The text to format
+     * @param player The {@link UUID unique id} of the player to format the text for. Note that this user must be online.
      * @return A future that will supply the formatted text
      * @throws IllegalArgumentException If the player could not be resolved from their {@link UUID}
+     * @since 1.0
      */
     public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull UUID player) throws IllegalArgumentException {
         return formatPlaceholders(text, plugin.findPlayer(player)
@@ -124,13 +162,19 @@ public final class PlaceholderAPI {
     }
 
     /**
-     * Set the timeout for requesting formatting from the proxy in milliseconds
+     * Set the timeout for requesting formatting from the proxy in milliseconds.
+     * If a request is not completed within this time, the original text will be returned
      * <p>
      * The default value is 400 milliseconds (0.4 seconds)
      *
      * @param requestTimeout The timeout for requesting formatting from the proxy in milliseconds
+     * @throws IllegalArgumentException If the timeout is negative
+     * @since 1.2
      */
     public void setRequestTimeout(long requestTimeout) {
+        if (requestTimeout < 0) {
+            throw new IllegalArgumentException("Request timeout cannot be negative");
+        }
         this.requestTimeout = requestTimeout;
     }
 
@@ -140,8 +184,14 @@ public final class PlaceholderAPI {
      * The default value is 30000 milliseconds (30 seconds)
      *
      * @param cacheExpiry The expiry time for the cache in milliseconds
+     * @throws IllegalArgumentException If the expiry time is negative
+     * @since 1.2
      */
     public void setCacheExpiry(long cacheExpiry) {
+        if (cacheExpiry < 0) {
+            throw new IllegalArgumentException("Cache expiry cannot be negative");
+        }
         this.cacheExpiry = cacheExpiry;
     }
+
 }

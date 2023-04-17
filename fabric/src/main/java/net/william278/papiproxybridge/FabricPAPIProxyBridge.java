@@ -65,8 +65,8 @@ public class FabricPAPIProxyBridge implements ModInitializer, PAPIProxyBridge {
     }
 
     @Override
-    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser user) {
-        String json = formatPlaceholders((FabricUser) user, Text.of(text)).getString();
+    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+        String json = formatPlaceholders(formatFor, (FabricUser) requester, Text.of(text)).getString();
         return CompletableFuture.completedFuture(json);
     }
 
@@ -80,7 +80,9 @@ public class FabricPAPIProxyBridge implements ModInitializer, PAPIProxyBridge {
     }
 
     @NotNull
-    public final Text formatPlaceholders(@NotNull FabricUser user, @NotNull Text text) {
-        return Placeholders.parseText(text, PlaceholderContext.of(user.getPlayer()));
+    public final Text formatPlaceholders(@NotNull UUID formatFor, @NotNull FabricUser requester, @NotNull Text text) {
+        return Placeholders.parseText(text, PlaceholderContext.of(
+                ((FabricUser) findPlayer(formatFor).orElse(requester)).getPlayer())
+        );
     }
 }

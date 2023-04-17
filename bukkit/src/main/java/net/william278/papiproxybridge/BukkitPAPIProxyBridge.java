@@ -76,8 +76,8 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     }
 
     @Override
-    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser user) {
-        return CompletableFuture.completedFuture(formatPlaceholders((BukkitUser) user, text));
+    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+        return CompletableFuture.completedFuture(formatPlaceholders(formatFor, (BukkitUser) requester, text));
     }
 
     @Override
@@ -95,8 +95,8 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     }
 
     @NotNull
-    public final String formatPlaceholders(@NotNull BukkitUser user, @NotNull String text) {
-        return formatter.formatPlaceholders(user.getPlayer(), text);
+    public final String formatPlaceholders(@NotNull UUID formatFor, @NotNull BukkitUser requester, @NotNull String text) {
+        return formatter.formatPlaceholders(formatFor, requester.getPlayer(), text);
     }
 
 }

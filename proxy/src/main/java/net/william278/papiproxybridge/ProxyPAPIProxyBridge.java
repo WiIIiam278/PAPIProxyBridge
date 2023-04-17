@@ -33,15 +33,15 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
     @NotNull
     Map<UUID, CompletableFuture<String>> getRequests();
 
-    default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser user) {
-        final Request request = new Request(text);
+    default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+        final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
         getRequests().put(request.getUuid(), future);
         future.orTimeout(800, TimeUnit.MILLISECONDS).exceptionally(throwable -> {
             getRequests().remove(request.getUuid());
             return text;
         });
-        user.sendPluginMessage(this, request);
+        requester.sendPluginMessage(this, request);
         return future;
     }
 

@@ -77,7 +77,7 @@ public interface PAPIProxyBridge {
         }
     }
 
-    CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser user);
+    CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor);
 
     void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions);
 

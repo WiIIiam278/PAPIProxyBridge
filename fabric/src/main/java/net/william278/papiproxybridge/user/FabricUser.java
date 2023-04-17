@@ -68,7 +68,11 @@ public class FabricUser implements OnlineUser {
     @Override
     public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message) {
         FabricPAPIProxyBridge bridge = (FabricPAPIProxyBridge) plugin;
-        message.setMessage(bridge.formatPlaceholders(this, Text.of(message.getMessage())).getString());
+        message.setMessage(bridge.formatPlaceholders(
+                message.getFormatFor(),
+                this,
+                Text.of(message.getMessage())
+        ).getString());
         this.sendPluginMessage(plugin, message);
     }
 

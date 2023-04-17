@@ -58,7 +58,7 @@ public final class BukkitUser implements OnlineUser {
 
     @Override
     public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message) {
-        message.setMessage(((BukkitPAPIProxyBridge) plugin).formatPlaceholders(this, message.getMessage()));
+        message.setMessage(((BukkitPAPIProxyBridge) plugin).formatPlaceholders(message.getFormatFor(), this, message.getMessage()));
         this.sendPluginMessage(plugin, message);
     }
 
