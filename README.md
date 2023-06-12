@@ -2,10 +2,10 @@
 <p align="center">
     <img src="images/banner.png" alt="PAPIProxyBridge" />
     <a href="https://github.com/WiIIiam278/PAPIProxyBridge/actions/workflows/ci.yml">
-        <img src="https://img.shields.io/github/actions/workflow/status/WiIIiam278/Velocitab/ci.yml?branch=master&logo=github"/>
+        <img src="https://img.shields.io/github/actions/workflow/status/WiIIiam278/PAPIProxyBridge/ci.yml?branch=master&logo=github"/>
     </a>
-    <a href="https://jitpack.io/#net.william278/PAPIProxyBridge">
-        <img src="https://img.shields.io/jitpack/version/net.william278/PAPIProxyBridge?color=%2300fb9a&label=api&logo=gradle" />
+    <a href="https://repo.william278.net/#releases/net/william278/papiproxybridge">
+        <img src="https://repo.william278.net/api/badge/latest/releases/net/william278/husktowns?color=00fb9a&name=Maven&prefix=v" />
     </a> 
     <a href="https://discord.gg/tVYhJfyDWG">
         <img src="https://img.shields.io/discord/818135932103557162.svg?label=&logo=discord&logoColor=fff&color=7389D8&labelColor=6A7EC2" />
@@ -18,7 +18,7 @@
 ## For server owners
 This is a library plugin intended for use with plugins that implement its API. There is nothing to configure.
 
-Install the latest version of the plugin alongside the [PlaceholderAPI plugin](https://www.spigotmc.org/resources/placeholderapi.6245/) on your Spigot (1.16.5+) or the [PlaceholderAPI mod](https://placeholders.pb4.eu/) on your Fabric (1.19.3+) server, then install the plugin on your BungeeCord or Velocity proxy server.
+Install the latest version of the plugin alongside the [PlaceholderAPI plugin](https://www.spigotmc.org/resources/placeholderapi.6245/) on your Spigot (1.16.5+) or the [PlaceholderAPI mod](https://placeholders.pb4.eu/) on your Fabric (1.20) server, then install the plugin on your BungeeCord or Velocity proxy server.
 
 Note this plugin is not a replacement for PlaceholderAPI. You still need to install PlaceholderAPI on your Spigot/Fabric server.
 
@@ -28,17 +28,17 @@ PAPIProxyBridge exposes a cross-platform API to let you format text with Placeho
 <details>
 <summary>Adding the library to your project</summary>
 
-PAPIProxyBridge is available on [Jitpack](https://jitpack.io/#net.william278/PAPIProxyBridge). First, add the maven repository to your `build.gradle`:
+PAPIProxyBridge is available on `repo.william278.net` ([view javadocs here](https://repo.william278.net/javadoc/releases/net/william278/papiproxybridge/latest)). First, add the maven repository to your `build.gradle`:
 ```groovy
 repositories {
-    maven { url 'https://jitpack.io' }
+    maven { url 'https://repo.william278.net/releases/' }
 }
 ```
 
 Then add the dependency:
 ```groovy
 dependencies {
-    implementation 'net.william278:PAPIProxyBridge:1.2'
+    implementation 'net.william278:papiproxybridge:1.2.1'
 }
 ```
 
@@ -64,6 +64,6 @@ api.formatPlaceholders("Hello %player_name%!", player).thenAccept(formatted -> {
 
 Never invoke `#join()` on calls to `#formatPlaceholders`; this is unsafe.
 
-PAPIProxyBridge caches resolved requests for 30000 milliseconds (30 seconds), to avoid causing excessive traffic over your servers network channels. You can adjust how long to cache requests for using the `PlaceholderAPI#setCacheExpiry(long)` method.
+PAPIProxyBridge caches resolved requests for 30000 milliseconds (30 seconds), to avoid causing excessive traffic over your server's network channels. You can adjust how long to cache requests for using the `PlaceholderAPI#setCacheExpiry(long)` method.
 
 </details>
