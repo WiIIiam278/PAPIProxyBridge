@@ -24,8 +24,8 @@
         "papiproxybridge.mixins.json"
     ],
     "depends": {
-        "fabricloader": ">=0.14.17",
-        "minecraft": ">=1.19.2",
+        "fabricloader": ">=${fabric_loader_version}",
+        "minecraft": ">=${fabric_minecraft_version}",
         "fabric-api": "*",
         "placeholder-api": "*"
     }
