@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -55,6 +56,12 @@ public class FabricPAPIProxyBridge implements ModInitializer, PAPIProxyBridge {
     }
 
     @Override
+    @NotNull
+    public List<? extends OnlineUser> getOnlineUsers() {
+        return server.getPlayerManager().getPlayerList().stream().map(FabricUser::adapt).toList();
+    }
+
+    @Override
     public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
         return Optional.ofNullable(server.getPlayerManager().getPlayer(uuid)).map(FabricUser::adapt);
     }
@@ -66,7 +73,7 @@ public class FabricPAPIProxyBridge implements ModInitializer, PAPIProxyBridge {
 
     @Override
     public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
-        String json = formatPlaceholders(formatFor, (FabricUser) requester, Text.of(text)).getString();
+        String json = formatPlaceholders(formatFor, (FabricUser) requester, text).getString();
         return CompletableFuture.completedFuture(json);
     }
 
@@ -80,8 +87,9 @@ public class FabricPAPIProxyBridge implements ModInitializer, PAPIProxyBridge {
     }
 
     @NotNull
-    public final Text formatPlaceholders(@NotNull UUID formatFor, @NotNull FabricUser requester, @NotNull Text text) {
-        return Placeholders.parseText(text, PlaceholderContext.of(
+    public final Text formatPlaceholders(@NotNull UUID formatFor, @NotNull FabricUser requester, @NotNull String text) {
+        text = text.replaceAll(HANDSHAKE_PLACEHOLDER, HANDSHAKE_RESPONSE);
+        return Placeholders.parseText(Text.of(text), PlaceholderContext.of(
                 ((FabricUser) findPlayer(formatFor).orElse(requester)).getPlayer())
         );
     }

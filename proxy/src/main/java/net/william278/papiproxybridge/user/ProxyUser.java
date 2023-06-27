@@ -34,4 +34,7 @@ public interface ProxyUser extends OnlineUser {
                 .complete(message.getMessage());
     }
 
+    @NotNull
+    String getServerName();
+
 }

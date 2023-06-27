@@ -26,6 +26,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -162,6 +163,18 @@ public final class PlaceholderAPI {
         return plugin.findPlayer(player)
                 .map(requester -> formatPlaceholders(text, requester, player))
                 .orElse(CompletableFuture.completedFuture(text));
+    }
+
+    /**
+     * Fetch the list of backend servers with PAPIProxyBridge installed
+     *
+     * @return A future that will supply the list of backend servers
+     * @throws UnsupportedOperationException If this method is called from a backend (Bukkit, Fabric) server
+     * @apiNote This method can only be used from the proxy; it will throw an exception if called from a backend server
+     * @since 1.3
+     */
+    public CompletableFuture<List<String>> findServers() throws UnsupportedOperationException {
+        return plugin.findServers();
     }
 
     /**

@@ -29,10 +29,7 @@ import net.william278.papiproxybridge.user.OnlineUser;
 import org.bstats.bungeecord.Metrics;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -75,6 +72,12 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     @NotNull
     public Map<UUID, CompletableFuture<String>> getRequests() {
         return requests;
+    }
+
+    @Override
+    @NotNull
+    public List<BungeeUser> getOnlineUsers() {
+        return getProxy().getPlayers().stream().map(BungeeUser::adapt).toList();
     }
 
     @Override
