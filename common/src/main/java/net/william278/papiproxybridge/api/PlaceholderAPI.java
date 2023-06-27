@@ -22,6 +22,7 @@ package net.william278.papiproxybridge.api;
 import net.jodah.expiringmap.ExpiringMap;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.user.OnlineUser;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -61,6 +62,7 @@ public final class PlaceholderAPI {
      *
      * @param plugin The plugin to register
      */
+    @ApiStatus.Internal
     private PlaceholderAPI(@NotNull PAPIProxyBridge plugin) {
         this.plugin = plugin;
         this.cache = new HashMap<>();
@@ -85,6 +87,7 @@ public final class PlaceholderAPI {
      *
      * @param plugin The plugin to register
      */
+    @ApiStatus.Internal
     public static void register(@NotNull PAPIProxyBridge plugin) {
         instance = new PlaceholderAPI(plugin);
     }
