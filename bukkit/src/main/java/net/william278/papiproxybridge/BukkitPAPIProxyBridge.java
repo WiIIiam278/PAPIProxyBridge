@@ -89,7 +89,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     @Override
     public CompletableFuture<List<String>> findServers() {
-        throw new UnsupportedOperationException("Cannot fetch the list of servers from a backend Fabric server.");
+        throw new UnsupportedOperationException("Cannot fetch the list of servers from a backend Bukkit server.");
     }
 
     @Override
