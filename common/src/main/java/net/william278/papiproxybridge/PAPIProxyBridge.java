@@ -60,7 +60,6 @@ public interface PAPIProxyBridge {
 
     Optional<OnlineUser> findPlayer(@NotNull String username);
 
-    @SuppressWarnings("UnstableApiUsage")
     default void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
         if (!channel.equals(plugin.getChannel())) {
             return;
