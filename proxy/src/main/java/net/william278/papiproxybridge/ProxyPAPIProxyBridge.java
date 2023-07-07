@@ -54,7 +54,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
         final Map<String, CompletableFuture<Boolean>> serverMap = getOnlineUsers().stream()
                 .filter(user -> user instanceof ProxyUser)
                 .map(user -> (ProxyUser) user)
-                .collect(Collectors.toMap(
+                .collect(Collectors.toConcurrentMap(
                         ProxyUser::getServerName,
                         user -> createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId())
                                 .thenApply(message -> message.equals(HANDSHAKE_RESPONSE))
