@@ -40,7 +40,6 @@ public interface OnlineUser {
 
     void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message);
 
-    @SuppressWarnings("UnstableApiUsage")
     default void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request) {
         final ByteArrayDataOutput messageWriter = ByteStreams.newDataOutput();
         messageWriter.writeUTF(getUsername()); // Username

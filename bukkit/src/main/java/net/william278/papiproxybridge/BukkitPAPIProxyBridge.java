@@ -29,6 +29,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -66,6 +67,12 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     }
 
     @Override
+    @NotNull
+    public List<BukkitUser> getOnlineUsers() {
+        return getServer().getOnlinePlayers().stream().map(BukkitUser::adapt).toList();
+    }
+
+    @Override
     public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
         return Optional.ofNullable(getServer().getPlayer(uuid)).map(BukkitUser::adapt);
     }
@@ -78,6 +85,11 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
         return CompletableFuture.completedFuture(formatPlaceholders(formatFor, (BukkitUser) requester, text));
+    }
+
+    @Override
+    public CompletableFuture<List<String>> findServers() {
+        throw new UnsupportedOperationException("Cannot fetch the list of servers from a backend Bukkit server.");
     }
 
     @Override

@@ -20,6 +20,7 @@
 package net.william278.papiproxybridge.papi;
 
 import me.clip.placeholderapi.PlaceholderAPI;
+import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,7 @@ public class Formatter {
 
     @NotNull
     public final String formatPlaceholders(@NotNull UUID formatFor, @NotNull Player requester, @NotNull String text) {
+        text = text.replaceAll(PAPIProxyBridge.HANDSHAKE_PLACEHOLDER, PAPIProxyBridge.HANDSHAKE_RESPONSE);
         return PlaceholderAPI.setPlaceholders(
                 requester.getUniqueId().equals(formatFor) ? requester : Bukkit.getOfflinePlayer(formatFor),
                 text
