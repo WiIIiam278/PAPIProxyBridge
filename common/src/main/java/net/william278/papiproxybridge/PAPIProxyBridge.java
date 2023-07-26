@@ -90,7 +90,4 @@ public interface PAPIProxyBridge {
 
     void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions);
 
-    default PlaceholderAPI createInstance() {
-        return PlaceholderAPI.create(this);
-    }
 }
