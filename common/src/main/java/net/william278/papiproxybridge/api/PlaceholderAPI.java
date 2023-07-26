@@ -67,7 +67,7 @@ public final class PlaceholderAPI {
     }
 
     /**
-     * Get the instance of the API. This is the entry point for the API
+     * Get the instance of the API. This is an entry point for the API. Shares expiration settings with all other plugins using this instance. Prefer {@link #createInstance()} for unique instance customisation.
      *
      * @return The instance of the API
      * @since 1.0
@@ -81,6 +81,16 @@ public final class PlaceholderAPI {
     }
 
     /**
+     * Create a new instance of PlaceholderAPI allowing unique customisation of caching mechanisms
+     *
+     * @return PlaceholderAPI instance that can be used to format text
+     * @since 1.3
+     */
+    public static PlaceholderAPI createInstance() {
+        return new PlaceholderAPI();
+    }
+
+    /**
      * <b>Internal only</b> - Register the plugin with the API
      *
      * @param plugin The plugin to register
@@ -89,14 +99,6 @@ public final class PlaceholderAPI {
     public static void register(@NotNull PAPIProxyBridge plugin) {
         PlaceholderAPI.plugin = plugin;
         instance = new PlaceholderAPI();
-    }
-
-    /**
-     * Create a new instance of PlaceholderAPI allowing unique customisation of caching mechanisms
-     * @return PlaceholderAPI instance that can be used to format text
-     */
-    public static PlaceholderAPI createInstance() {
-        return new PlaceholderAPI();
     }
 
     /**
