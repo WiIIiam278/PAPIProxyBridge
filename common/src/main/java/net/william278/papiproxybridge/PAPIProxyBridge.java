@@ -21,6 +21,7 @@ package net.william278.papiproxybridge;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.Request;
 import org.jetbrains.annotations.NotNull;
@@ -89,4 +90,7 @@ public interface PAPIProxyBridge {
 
     void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions);
 
+    default PlaceholderAPI createInstance() {
+        return PlaceholderAPI.create(this);
+    }
 }

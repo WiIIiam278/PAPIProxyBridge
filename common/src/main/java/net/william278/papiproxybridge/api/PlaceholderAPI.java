@@ -53,19 +53,16 @@ import java.util.concurrent.TimeUnit;
 public final class PlaceholderAPI {
 
     private static PlaceholderAPI instance;
-    private final PAPIProxyBridge plugin;
+    private static PAPIProxyBridge plugin;
     private final Map<UUID, ExpiringMap<String, String>> cache;
     private long requestTimeout = 400;
     private long cacheExpiry = 30000;
 
     /**
      * <b>Internal only</b> - Create a new instance of the API
-     *
-     * @param plugin The plugin to register
      */
     @ApiStatus.Internal
-    private PlaceholderAPI(@NotNull PAPIProxyBridge plugin) {
-        this.plugin = plugin;
+    private PlaceholderAPI() {
         this.cache = new HashMap<>();
     }
 
@@ -90,7 +87,16 @@ public final class PlaceholderAPI {
      */
     @ApiStatus.Internal
     public static void register(@NotNull PAPIProxyBridge plugin) {
-        instance = new PlaceholderAPI(plugin);
+        PlaceholderAPI.plugin = plugin;
+        instance = new PlaceholderAPI();
+    }
+
+    /**
+     * Create a new instance of PlaceholderAPI allowing unique customisation of caching mechanisms
+     * @return PlaceholderAPI instance that can be used to format text
+     */
+    public static PlaceholderAPI createInstance() {
+        return new PlaceholderAPI();
     }
 
     /**
