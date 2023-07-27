@@ -27,12 +27,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public interface PAPIProxyBridge {
+
+    String HANDSHAKE_PLACEHOLDER = "%papiproxybridge_handshake%";
+    String HANDSHAKE_RESPONSE = "confirmed";
 
     @NotNull
     default String getChannel() {
@@ -49,11 +53,13 @@ public interface PAPIProxyBridge {
         return "format";
     }
 
+    @NotNull
+    List<? extends OnlineUser> getOnlineUsers();
+
     Optional<OnlineUser> findPlayer(@NotNull UUID uuid);
 
     Optional<OnlineUser> findPlayer(@NotNull String username);
 
-    @SuppressWarnings("UnstableApiUsage")
     default void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
         if (!channel.equals(plugin.getChannel())) {
             return;
@@ -78,6 +84,8 @@ public interface PAPIProxyBridge {
     }
 
     CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor);
+
+    CompletableFuture<List<String>> findServers();
 
     void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions);
 

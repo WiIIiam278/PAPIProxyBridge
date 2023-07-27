@@ -26,6 +26,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -50,36 +51,41 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
-
-    private static PlaceholderAPI instance;
-    private final PAPIProxyBridge plugin;
+    private static PAPIProxyBridge plugin;
     private final Map<UUID, ExpiringMap<String, String>> cache;
     private long requestTimeout = 400;
     private long cacheExpiry = 30000;
 
     /**
      * <b>Internal only</b> - Create a new instance of the API
-     *
-     * @param plugin The plugin to register
      */
     @ApiStatus.Internal
-    private PlaceholderAPI(@NotNull PAPIProxyBridge plugin) {
-        this.plugin = plugin;
+    private PlaceholderAPI() {
         this.cache = new HashMap<>();
     }
 
     /**
-     * Get the instance of the API. This is the entry point for the API
+     * Get the instance of the API. This is an entry point for the API. Shares expiration settings with all other plugins using this instance. Prefer {@link #createInstance()} for unique instance customisation.
      *
-     * @return The instance of the API
+     * @deprecated Use {@link #createInstance()}
+     * @apiNote From version 1.3 getInstance will return a new instance of the PlaceholderAPI rather than a singleton
+     * @return An instance of the API
      * @since 1.0
      */
+    @Deprecated
     @NotNull
     public static PlaceholderAPI getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("ProxyPlaceholderApi is not initialized");
-        }
-        return instance;
+        return createInstance();
+    }
+
+    /**
+     * Create a new instance of PlaceholderAPI allowing unique customisation of caching mechanisms
+     *
+     * @return PlaceholderAPI instance that can be used to format text
+     * @since 1.3
+     */
+    public static PlaceholderAPI createInstance() {
+        return new PlaceholderAPI();
     }
 
     /**
@@ -89,7 +95,7 @@ public final class PlaceholderAPI {
      */
     @ApiStatus.Internal
     public static void register(@NotNull PAPIProxyBridge plugin) {
-        instance = new PlaceholderAPI(plugin);
+        PlaceholderAPI.plugin = plugin;
     }
 
     /**
@@ -164,6 +170,18 @@ public final class PlaceholderAPI {
                 .orElse(CompletableFuture.completedFuture(text));
     }
 
+    /**
+     * Fetch the list of backend servers with PAPIProxyBridge installed
+     *
+     * @return A future that will supply the list of backend servers
+     * @throws UnsupportedOperationException If this method is called from a backend (Bukkit, Fabric) server
+     * @apiNote This method can only be used from the proxy; it will throw an exception if called from a backend server
+     * @since 1.3
+     */
+    public CompletableFuture<List<String>> findServers() throws UnsupportedOperationException {
+        return plugin.findServers();
+    }
+    
     /**
      * Set the timeout for requesting formatting from the proxy in milliseconds.
      * If a request is not completed within this time, the original text will be returned

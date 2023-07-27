@@ -57,8 +57,17 @@ public class VelocityUser implements ProxyUser {
         player.getCurrentServer().ifPresent(server -> {
             if (!server.sendPluginMessage(((VelocityPAPIProxyBridge) plugin).getChannelIdentifier(), message)) {
                 plugin.log(Level.SEVERE, "Failed to send plugin message to " + server.getServerInfo().getName()
-                                         + " for player " + player.getUsername() + " on channel " + ((VelocityPAPIProxyBridge) plugin).getChannelIdentifier().getId());
+                                         + " for player " + player.getUsername() + " on channel "
+                                         + ((VelocityPAPIProxyBridge) plugin).getChannelIdentifier().getId());
             }
         });
+    }
+
+    @Override
+    @NotNull
+    public String getServerName() {
+        return player.getCurrentServer()
+                .map(serverConnection -> serverConnection.getServerInfo().getName())
+                .orElse("unknown");
     }
 }

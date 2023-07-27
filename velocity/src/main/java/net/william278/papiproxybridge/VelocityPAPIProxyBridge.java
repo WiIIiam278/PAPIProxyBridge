@@ -34,10 +34,7 @@ import org.bstats.velocity.Metrics;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -76,6 +73,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Subscribe
     public void onPluginMessageReceived(@NotNull PluginMessageEvent event) {
         handlePluginMessage(this, event.getIdentifier().getId(), event.getData());
+        event.setResult(PluginMessageEvent.ForwardResult.handled());
     }
 
     @Override
@@ -91,6 +89,12 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @NotNull
     public Map<UUID, CompletableFuture<String>> getRequests() {
         return requests;
+    }
+
+    @Override
+    @NotNull
+    public List<VelocityUser> getOnlineUsers() {
+        return server.getAllPlayers().stream().map(VelocityUser::adapt).toList();
     }
 
     @Override

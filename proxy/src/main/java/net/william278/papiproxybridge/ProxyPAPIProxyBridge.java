@@ -20,13 +20,17 @@
 package net.william278.papiproxybridge;
 
 import net.william278.papiproxybridge.user.OnlineUser;
+import net.william278.papiproxybridge.user.ProxyUser;
 import net.william278.papiproxybridge.user.Request;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
 
@@ -42,6 +46,29 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
             return text;
         });
         requester.sendPluginMessage(this, request);
+        return future;
+    }
+
+    default CompletableFuture<List<String>> findServers() {
+        final CompletableFuture<List<String>> future = new CompletableFuture<>();
+        final Map<String, CompletableFuture<Boolean>> serverMap = getOnlineUsers().stream()
+                .filter(user -> user instanceof ProxyUser)
+                .map(user -> (ProxyUser) user)
+                .collect(Collectors.toConcurrentMap(
+                        ProxyUser::getServerName,
+                        user -> createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId())
+                                .thenApply(message -> message.equals(HANDSHAKE_RESPONSE))
+                ));
+
+        CompletableFuture.allOf(serverMap.values().toArray(new CompletableFuture[0]))
+                .thenRun(() -> {
+                    final Set<String> servers = serverMap.entrySet().stream()
+                            .filter(entry -> entry.getValue().getNow(false))
+                            .map(Map.Entry::getKey)
+                            .collect(Collectors.toSet());
+                    future.complete(List.copyOf(servers));
+                });
+
         return future;
     }
 

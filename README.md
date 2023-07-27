@@ -38,7 +38,7 @@ repositories {
 Then add the dependency:
 ```groovy
 dependencies {
-    implementation 'net.william278:papiproxybridge:1.2.1'
+    implementation 'net.william278:papiproxybridge:1.2.2
 }
 ```
 
@@ -55,7 +55,7 @@ The method returns a [CompletableFuture](https://www.baeldung.com/java-completab
 
 ```java
 // Format a string with placeholders
-final PlaceholderAPI api = PlaceholderAPI.getInstance();
+final PlaceholderAPI api = PlaceholderAPI.createInstance();
 final UUID player = player.getUniqueId();
 api.formatPlaceholders("Hello %player_name%!", player).thenAccept(formatted -> {
     player.sendMessage(formatted);
