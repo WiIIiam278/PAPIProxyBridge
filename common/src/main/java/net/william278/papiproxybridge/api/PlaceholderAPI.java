@@ -69,15 +69,15 @@ public final class PlaceholderAPI {
     /**
      * Get the instance of the API. This is an entry point for the API. Shares expiration settings with all other plugins using this instance. Prefer {@link #createInstance()} for unique instance customisation.
      *
-     * @return The instance of the API
+     * @deprecated Use {@link #createInstance()}
+     * @apiNote From version 1.3 getInstance will return a new instance of the PlaceholderAPI rather than a singleton
+     * @return An instance of the API
      * @since 1.0
      */
+    @Deprecated
     @NotNull
     public static PlaceholderAPI getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("ProxyPlaceholderApi is not initialized");
-        }
-        return instance;
+        return createInstance();
     }
 
     /**
