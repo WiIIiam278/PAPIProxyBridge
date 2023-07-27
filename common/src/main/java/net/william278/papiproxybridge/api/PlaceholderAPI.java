@@ -51,8 +51,6 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
-
-    private static PlaceholderAPI instance;
     private static PAPIProxyBridge plugin;
     private final Map<UUID, ExpiringMap<String, String>> cache;
     private long requestTimeout = 400;
@@ -98,7 +96,6 @@ public final class PlaceholderAPI {
     @ApiStatus.Internal
     public static void register(@NotNull PAPIProxyBridge plugin) {
         PlaceholderAPI.plugin = plugin;
-        instance = new PlaceholderAPI();
     }
 
     /**
