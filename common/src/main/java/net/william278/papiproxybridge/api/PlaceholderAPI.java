@@ -19,17 +19,17 @@
 
 package net.william278.papiproxybridge.api;
 
+import com.google.common.collect.Maps;
 import net.jodah.expiringmap.ExpiringMap;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
     private static PAPIProxyBridge plugin;
-    private final Map<UUID, ExpiringMap<String, String>> cache;
+    private final ConcurrentMap<UUID, ExpiringMap<String, String>> cache;
     private long requestTimeout = 400;
     private long cacheExpiry = 30000;
 
@@ -61,20 +61,21 @@ public final class PlaceholderAPI {
      */
     @ApiStatus.Internal
     private PlaceholderAPI() {
-        this.cache = new HashMap<>();
+        this.cache = Maps.newConcurrentMap();
     }
 
     /**
      * Get the instance of the API. This is an entry point for the API.
+     * <p>
      * Shares expiration settings with all other plugins using this instance.
      * Prefer {@link #createInstance()} for unique instance customization.
      *
      * @return An instance of the API
      * @apiNote From version 1.3, #getInstance() will return a new instance of the PlaceholderAPI rather than a singleton
      * @since 1.0
-     * @deprecated Use {@link #createInstance()}
+     * @deprecated Use {@link #createInstance()} instead
      */
-    @Deprecated
+    @Deprecated(since = "1.3")
     @NotNull
     public static PlaceholderAPI getInstance() {
         return createInstance();

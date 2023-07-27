@@ -29,19 +29,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
 
+    long REQUEST_TIMEOUT_MILLIS = 800;
+
     @NotNull
-    Map<UUID, CompletableFuture<String>> getRequests();
+    ConcurrentMap<UUID, CompletableFuture<String>> getRequests();
 
     default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
         getRequests().put(request.getUuid(), future);
-        future.orTimeout(800, TimeUnit.MILLISECONDS).exceptionally(throwable -> {
+        future.orTimeout(REQUEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS).exceptionally(throwable -> {
             getRequests().remove(request.getUuid());
             return text;
         });

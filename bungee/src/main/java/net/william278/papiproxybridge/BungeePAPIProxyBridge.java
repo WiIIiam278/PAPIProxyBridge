@@ -19,6 +19,7 @@
 
 package net.william278.papiproxybridge;
 
+import net.jodah.expiringmap.ExpiringMap;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -29,13 +30,16 @@ import net.william278.papiproxybridge.user.OnlineUser;
 import org.bstats.bungeecord.Metrics;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridge, Listener {
 
-    private final Map<UUID, CompletableFuture<String>> requests = new HashMap<>();
+    private final ConcurrentMap<UUID, CompletableFuture<String>> requests = ExpiringMap.create();
 
     @Override
     public void onEnable() {
@@ -70,7 +74,7 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
 
     @Override
     @NotNull
-    public Map<UUID, CompletableFuture<String>> getRequests() {
+    public ConcurrentMap<UUID, CompletableFuture<String>> getRequests() {
         return requests;
     }
 

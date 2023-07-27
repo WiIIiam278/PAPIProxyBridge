@@ -1,5 +1,9 @@
+plugins {
+    id 'java-library'
+}
+
 dependencies {
-    implementation 'net.jodah:expiringmap:0.5.10'
+    api 'net.jodah:expiringmap:0.5.10'
 
     compileOnly 'com.google.guava:guava:32.1.1-jre'
     compileOnly 'org.jetbrains:annotations:24.0.1'

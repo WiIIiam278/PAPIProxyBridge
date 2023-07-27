@@ -23,14 +23,20 @@ import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.ProxyPAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
+
 public interface ProxyUser extends OnlineUser {
 
     @Override
     default void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message) {
-        ((ProxyPAPIProxyBridge) plugin).getRequests().computeIfPresent(message.getUuid(), (uuid, future) -> {
+        final ConcurrentMap<UUID, CompletableFuture<String>> requests = ((ProxyPAPIProxyBridge) plugin).getRequests();
+        requests.computeIfPresent(message.getUuid(), (uuid, future) -> {
             future.complete(message.getMessage());
             return null;
         });
+        requests.remove(message.getUuid());
     }
 
     @NotNull

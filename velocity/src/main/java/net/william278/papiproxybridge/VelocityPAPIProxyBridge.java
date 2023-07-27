@@ -27,6 +27,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
+import net.jodah.expiringmap.ExpiringMap;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.VelocityUser;
@@ -34,14 +35,17 @@ import org.bstats.velocity.Metrics;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 @Plugin(id = "papiproxybridge")
 public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
-    private final Map<UUID, CompletableFuture<String>> requests;
+    private final ConcurrentMap<UUID, CompletableFuture<String>> requests;
     private final ChannelIdentifier channelIdentifier;
     private final ProxyServer server;
     private final Logger logger;
@@ -52,7 +56,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         this.server = server;
         this.logger = logger;
         this.metricsFactory = metricsFactory;
-        this.requests = new HashMap<>();
+        this.requests = ExpiringMap.create();
         this.channelIdentifier = new LegacyChannelIdentifier(getChannel());
     }
 
@@ -87,7 +91,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     @Override
     @NotNull
-    public Map<UUID, CompletableFuture<String>> getRequests() {
+    public ConcurrentMap<UUID, CompletableFuture<String>> getRequests() {
         return requests;
     }
 
