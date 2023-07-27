@@ -65,12 +65,14 @@ public final class PlaceholderAPI {
     }
 
     /**
-     * Get the instance of the API. This is an entry point for the API. Shares expiration settings with all other plugins using this instance. Prefer {@link #createInstance()} for unique instance customisation.
+     * Get the instance of the API. This is an entry point for the API.
+     * Shares expiration settings with all other plugins using this instance.
+     * Prefer {@link #createInstance()} for unique instance customization.
      *
-     * @deprecated Use {@link #createInstance()}
-     * @apiNote From version 1.3 getInstance will return a new instance of the PlaceholderAPI rather than a singleton
      * @return An instance of the API
+     * @apiNote From version 1.3, #getInstance() will return a new instance of the PlaceholderAPI rather than a singleton
      * @since 1.0
+     * @deprecated Use {@link #createInstance()}
      */
     @Deprecated
     @NotNull
@@ -79,11 +81,12 @@ public final class PlaceholderAPI {
     }
 
     /**
-     * Create a new instance of PlaceholderAPI allowing unique customisation of caching mechanisms
+     * Create a new instance of PlaceholderAPI allowing unique customization of caching mechanisms
      *
      * @return PlaceholderAPI instance that can be used to format text
      * @since 1.3
      */
+    @NotNull
     public static PlaceholderAPI createInstance() {
         return new PlaceholderAPI();
     }
@@ -181,7 +184,7 @@ public final class PlaceholderAPI {
     public CompletableFuture<List<String>> findServers() throws UnsupportedOperationException {
         return plugin.findServers();
     }
-    
+
     /**
      * Set the timeout for requesting formatting from the proxy in milliseconds.
      * If a request is not completed within this time, the original text will be returned
