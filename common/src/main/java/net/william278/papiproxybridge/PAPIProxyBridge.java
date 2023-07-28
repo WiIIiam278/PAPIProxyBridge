@@ -44,6 +44,11 @@ public interface PAPIProxyBridge {
     }
 
     @NotNull
+    default String getComponentChannel() {
+        return getChannelNamespace() + ":" + getComponentChannelKey();
+    }
+
+    @NotNull
     default String getChannelNamespace() {
         return "papiproxybridge";
     }
@@ -54,6 +59,11 @@ public interface PAPIProxyBridge {
     }
 
     @NotNull
+    default String getComponentChannelKey() {
+        return "component";
+    }
+
+    @NotNull
     List<? extends OnlineUser> getOnlineUsers();
 
     Optional<OnlineUser> findPlayer(@NotNull UUID uuid);
@@ -61,7 +71,7 @@ public interface PAPIProxyBridge {
     Optional<OnlineUser> findPlayer(@NotNull String username);
 
     default void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
-        if (!channel.equals(plugin.getChannel())) {
+        if (!channel.equals(plugin.getChannel()) && !channel.equals(getComponentChannel())) {
             return;
         }
 
@@ -77,13 +87,13 @@ public interface PAPIProxyBridge {
         inputStream.readFully(messageBody);
 
         try (final DataInputStream messageReader = new DataInputStream(new ByteArrayInputStream(messageBody))) {
-            user.handlePluginMessage(plugin, Request.fromString(messageReader.readUTF()));
+            user.handlePluginMessage(plugin, Request.fromString(messageReader.readUTF()), channel.equals(getComponentChannel()));
         } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to fully read plugin message", e);
         }
     }
 
-    CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor);
+    CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, @NotNull boolean wantsGson);
 
     CompletableFuture<List<String>> findServers();
 

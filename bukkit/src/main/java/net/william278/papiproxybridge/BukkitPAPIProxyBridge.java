@@ -48,7 +48,9 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     public void onEnable() {
         // Register the plugin message channel
         getServer().getMessenger().registerOutgoingPluginChannel(this, getChannel());
+        getServer().getMessenger().registerOutgoingPluginChannel(this, getComponentChannel());
         getServer().getMessenger().registerIncomingPluginChannel(this, getChannel(), this);
+        getServer().getMessenger().registerIncomingPluginChannel(this, getComponentChannel(), this);
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
@@ -83,7 +85,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     }
 
     @Override
-    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsGson) {
         return CompletableFuture.completedFuture(formatPlaceholders(formatFor, (BukkitUser) requester, text));
     }
 

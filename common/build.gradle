@@ -7,6 +7,9 @@ dependencies {
 
     compileOnly 'com.google.guava:guava:32.1.1-jre'
     compileOnly 'org.jetbrains:annotations:24.0.1'
+
+    compileOnly 'net.kyori:adventure-api:4.14.0'
+    compileOnly "net.kyori:adventure-text-serializer-gson:4.14.0"
 }
 
 shadowJar {

@@ -40,7 +40,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
     @NotNull
     ConcurrentMap<UUID, CompletableFuture<String>> getRequests();
 
-    default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+    default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsGson) {
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
         getRequests().put(request.getUuid(), future);
@@ -48,7 +48,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
             getRequests().remove(request.getUuid());
             return text;
         });
-        requester.sendPluginMessage(this, request);
+        requester.sendPluginMessage(this, request, wantsGson);
         return future;
     }
 
@@ -59,7 +59,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
                 .map(user -> (ProxyUser) user)
                 .collect(Collectors.toConcurrentMap(
                         ProxyUser::getServerName,
-                        user -> createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId())
+                        user -> createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId(), false)
                                 .thenApply(message -> message.equals(HANDSHAKE_RESPONSE))
                 ));
 

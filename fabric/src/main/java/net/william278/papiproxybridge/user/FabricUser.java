@@ -24,6 +24,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.william278.papiproxybridge.FabricPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
@@ -65,14 +66,12 @@ public class FabricUser implements OnlineUser {
     }
 
     @Override
-    public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message) {
+    public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsGson) {
         FabricPAPIProxyBridge bridge = (FabricPAPIProxyBridge) plugin;
-        message.setMessage(bridge.formatPlaceholders(
-                message.getFormatFor(),
-                this,
-                message.getMessage()
-        ).getString());
-        this.sendPluginMessage(plugin, message);
+        Text formatted = bridge.formatPlaceholders(message.getFormatFor(), this, message.getMessage());
+        String response = wantsGson ? Text.Serializer.toJson(formatted) : formatted.getString();
+        message.setMessage(response);
+        this.sendPluginMessage(plugin, message, wantsGson);
     }
 
     @NotNull

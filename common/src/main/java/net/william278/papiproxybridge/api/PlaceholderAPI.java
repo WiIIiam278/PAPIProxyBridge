@@ -21,6 +21,8 @@ package net.william278.papiproxybridge.api;
 
 import com.google.common.collect.Maps;
 import net.jodah.expiringmap.ExpiringMap;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.ApiStatus;
@@ -53,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 public final class PlaceholderAPI {
     private static PAPIProxyBridge plugin;
     private final ConcurrentMap<UUID, ExpiringMap<String, String>> cache;
+    private final ConcurrentMap<UUID, ExpiringMap<String, Component>> componentCache;
     private long requestTimeout = 400;
     private long cacheExpiry = 30000;
 
@@ -62,6 +65,7 @@ public final class PlaceholderAPI {
     @ApiStatus.Internal
     private PlaceholderAPI() {
         this.cache = Maps.newConcurrentMap();
+        this.componentCache = Maps.newConcurrentMap();
     }
 
     /**
@@ -118,7 +122,7 @@ public final class PlaceholderAPI {
         if (cacheExpiry > 0 && cache.containsKey(formatFor) && cache.get(formatFor).containsKey(text)) {
             return CompletableFuture.completedFuture(cache.get(formatFor).get(text));
         }
-        return plugin.createRequest(text, requester, formatFor)
+        return plugin.createRequest(text, requester, formatFor, false)
                 .thenApply(formatted -> {
                     cache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
                                     .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
@@ -173,6 +177,81 @@ public final class PlaceholderAPI {
                 .map(requester -> formatPlaceholders(text, requester, player))
                 .orElse(CompletableFuture.completedFuture(text));
     }
+
+    /**
+     * Format the text with the placeholders of the player
+     * <p>
+     * This method accepts the {@link UUID unique id} of a player who will be passed as the user for formatting the placeholders;
+     * distinct from the player dispatching the plugin message across the network.
+     *
+     * @param text      The text to format
+     * @param requester The player used to request the formatting
+     * @param formatFor The player to format the text for
+     * @return A future that will supply the formatted component
+     * @since 1.4
+     */
+    public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+        if (cacheExpiry > 0 && componentCache.containsKey(formatFor) && componentCache.get(formatFor).containsKey(text)) {
+            return CompletableFuture.completedFuture(componentCache.get(formatFor).get(text));
+        }
+        return plugin.createRequest(text, requester, formatFor, true)
+                .thenApply(formatted -> {
+                    Component deserialized = GsonComponentSerializer.gson().deserializeOr(formatted, Component.text(formatted));
+                    componentCache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
+                                    .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
+                                    .build())
+                            .put(text, deserialized);
+                    return deserialized;
+                })
+                .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
+                .exceptionally(throwable -> Component.text(text));
+    }
+
+    /**
+     * Format the text with the placeholders of the player
+     *
+     * @param text   The text to format
+     * @param player The player to format the text for
+     * @return A future that will supply the formatted component
+     * @since 1.4
+     */
+    public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull OnlineUser player) {
+        return formatComponentPlaceholders(text, player, player.getUniqueId());
+    }
+
+    /**
+     * Format the text with the placeholders of the player
+     * <p>
+     * This method accepts the {@link UUID unique id} of a player who will be passed as the user for formatting the placeholders;
+     * distinct from the player dispatching the plugin message across the network.
+     *
+     * @param text      The text to format
+     * @param requester The {@link UUID unique id} of the player used to request the formatting. Note that this user must be online.
+     * @param formatFor The {@link UUID unique id} of the player to format the text for
+     * @return A future that will supply the formatted component. If the requester is not online, the original text will be returned
+     * @since 1.4
+     */
+    public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull UUID requester, @NotNull UUID formatFor) {
+        return plugin.findPlayer(requester)
+                .map(onlineRequester -> formatComponentPlaceholders(text, onlineRequester, formatFor))
+                .orElse(CompletableFuture.completedFuture(Component.text(text)));
+    }
+
+    /**
+     * Format the text with the placeholders of the player
+     *
+     * @param text   The text to format
+     * @param player The {@link UUID unique id} of the player to format the text for. Note that this user must be online.
+     * @return A future that will supply the formatted component. If the player is not online, the original text will be returned
+     * @since 1.4
+     */
+    public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull UUID player) {
+        return plugin.findPlayer(player)
+                .map(requester -> formatComponentPlaceholders(text, requester, player))
+                .orElse(CompletableFuture.completedFuture(Component.text(text)));
+    }
+
+
 
     /**
      * Fetch the list of backend servers with PAPIProxyBridge installed
