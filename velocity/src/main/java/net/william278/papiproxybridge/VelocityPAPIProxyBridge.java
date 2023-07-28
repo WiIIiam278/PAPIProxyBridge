@@ -19,6 +19,7 @@
 
 package net.william278.papiproxybridge;
 
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
@@ -27,7 +28,6 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
-import net.jodah.expiringmap.ExpiringMap;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.VelocityUser;
@@ -56,7 +56,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         this.server = server;
         this.logger = logger;
         this.metricsFactory = metricsFactory;
-        this.requests = ExpiringMap.create();
+        this.requests = Maps.newConcurrentMap();
         this.channelIdentifier = new LegacyChannelIdentifier(getChannel());
     }
 

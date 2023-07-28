@@ -19,7 +19,7 @@
 
 package net.william278.papiproxybridge;
 
-import net.jodah.expiringmap.ExpiringMap;
+import com.google.common.collect.Maps;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -39,7 +39,7 @@ import java.util.logging.Level;
 
 public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridge, Listener {
 
-    private final ConcurrentMap<UUID, CompletableFuture<String>> requests = ExpiringMap.create();
+    private final ConcurrentMap<UUID, CompletableFuture<String>> requests = Maps.newConcurrentMap();
 
     @Override
     public void onEnable() {
