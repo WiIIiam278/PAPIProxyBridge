@@ -45,6 +45,7 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     public void onEnable() {
         // Register the plugin message channel
         getProxy().registerChannel(getChannel());
+        getProxy().registerChannel(getComponentChannel());
 
         // Register the plugin message listener
         getProxy().getPluginManager().registerListener(this, this);
