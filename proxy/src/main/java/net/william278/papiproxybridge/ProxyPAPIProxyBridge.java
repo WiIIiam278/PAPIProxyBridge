@@ -43,7 +43,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
     default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
-        getRequests().put(request.getUuid(), future);
+        getRequests().putIfAbsent(request.getUuid(), future);
         future.orTimeout(REQUEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS).exceptionally(throwable -> {
             getRequests().remove(request.getUuid());
             return text;
