@@ -79,7 +79,8 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     @Subscribe
     public void onPluginMessageReceived(@NotNull PluginMessageEvent event) {
-        if (!event.getIdentifier().equals(getChannelIdentifier())) {
+        ChannelIdentifier channelId = event.getIdentifier();
+        if (!channelId.equals(this.channelIdentifier) && !channelId.equals(this.componentChannelIdentifier)) {
             return;
         }
 
