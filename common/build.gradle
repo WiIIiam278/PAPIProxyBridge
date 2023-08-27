@@ -5,7 +5,7 @@ plugins {
 dependencies {
     api 'net.jodah:expiringmap:0.5.10'
 
-    compileOnly 'com.google.guava:guava:32.1.1-jre'
+    compileOnly 'com.google.guava:guava:32.1.2-jre'
     compileOnly 'org.jetbrains:annotations:24.0.1'
 
     compileOnly 'net.kyori:adventure-api:4.14.0'

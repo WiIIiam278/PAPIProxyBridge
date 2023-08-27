@@ -32,11 +32,12 @@ public interface ProxyUser extends OnlineUser {
     @Override
     default void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsGson) {
         final ConcurrentMap<UUID, CompletableFuture<String>> requests = ((ProxyPAPIProxyBridge) plugin).getRequests();
-        requests.computeIfPresent(message.getUuid(), (uuid, future) -> {
+        CompletableFuture<String> future = requests.get(message.getUuid());
+
+        if (future != null) {
             future.complete(message.getMessage());
-            return null;
-        });
-        requests.remove(message.getUuid());
+            requests.remove(message.getUuid());
+        }
     }
 
     @NotNull
