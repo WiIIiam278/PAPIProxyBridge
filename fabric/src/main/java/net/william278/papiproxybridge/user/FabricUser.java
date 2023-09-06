@@ -92,7 +92,7 @@ public class FabricUser implements OnlineUser {
     }
 
     @Override
-    public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsGson) {
+    public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
         FabricPAPIProxyBridge bridge = (FabricPAPIProxyBridge) plugin;
         Text formatted = bridge.formatPlaceholders(message.getFormatFor(), this, message.getMessage());
         Component original = getComponent(formatted);
@@ -102,9 +102,9 @@ public class FabricUser implements OnlineUser {
             }
             return component;
         }).collect(Component.toComponent()).mergeStyle(original);
-        String response = wantsGson ? GsonComponentSerializer.gson().serialize(transformed) : formatted.getString();
+        String response = wantsJson ? GsonComponentSerializer.gson().serialize(transformed) : formatted.getString();
         message.setMessage(response);
-        this.sendPluginMessage(plugin, message, wantsGson);
+        this.sendPluginMessage(plugin, message, wantsJson);
     }
 
     @NotNull

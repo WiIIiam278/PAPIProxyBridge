@@ -40,7 +40,7 @@ public interface OnlineUser {
 
     void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message);
 
-    default void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request, boolean wantsGson) {
+    default void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request, boolean wantsJson) {
         final ByteArrayDataOutput messageWriter = ByteStreams.newDataOutput();
         messageWriter.writeUTF(getUsername()); // Username
 
@@ -56,9 +56,9 @@ public interface OnlineUser {
             return;
         }
 
-        this.sendPluginMessage(plugin, wantsGson ? plugin.getComponentChannel() : plugin.getChannel(), messageWriter.toByteArray());
+        this.sendPluginMessage(plugin, wantsJson ? plugin.getComponentChannel() : plugin.getChannel(), messageWriter.toByteArray());
     }
 
-    void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsGson);
+    void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson);
 
 }
