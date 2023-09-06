@@ -20,6 +20,7 @@
 package net.william278.papiproxybridge.user;
 
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.VelocityPAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
@@ -55,10 +56,10 @@ public class VelocityUser implements ProxyUser {
     @Override
     public void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
         player.getCurrentServer().ifPresent(server -> {
-            if (!server.sendPluginMessage(((VelocityPAPIProxyBridge) plugin).getChannelIdentifier(), message)) {
+            if (!server.sendPluginMessage(new LegacyChannelIdentifier(channel), message)) {
                 plugin.log(Level.SEVERE, "Failed to send plugin message to " + server.getServerInfo().getName()
                                          + " for player " + player.getUsername() + " on channel "
-                                         + ((VelocityPAPIProxyBridge) plugin).getChannelIdentifier().getId());
+                                         + channel);
             }
         });
     }

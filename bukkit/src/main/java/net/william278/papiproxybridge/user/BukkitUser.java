@@ -19,6 +19,8 @@
 
 package net.william278.papiproxybridge.user;
 
+import me.clip.placeholderapi.libs.kyori.adventure.text.Component;
+import me.clip.placeholderapi.libs.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.william278.papiproxybridge.BukkitPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.bukkit.entity.Player;
@@ -57,9 +59,10 @@ public final class BukkitUser implements OnlineUser {
     }
 
     @Override
-    public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message) {
-        message.setMessage(((BukkitPAPIProxyBridge) plugin).formatPlaceholders(message.getFormatFor(), this, message.getMessage()));
-        this.sendPluginMessage(plugin, message);
+    public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
+        String formatted = ((BukkitPAPIProxyBridge) plugin).formatPlaceholders(message.getFormatFor(), this, message.getMessage());
+        message.setMessage(wantsJson ? GsonComponentSerializer.gson().serialize(Component.text(formatted)) : formatted);
+        this.sendPluginMessage(plugin, message, wantsJson);
     }
 
     @NotNull

@@ -49,7 +49,7 @@ public class FabricPAPIProxyBridge implements ModInitializer, PAPIProxyBridge {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> FabricPAPIProxyBridge.server = server);
 
         CustomPayloadCallback.EVENT.register((channel, byteBuf) -> {
-            if (channel.equals(getChannel())) {
+            if (channel.equals(getChannel()) || channel.equals(getComponentChannel())) {
                 this.handlePluginMessage(this, channel, byteBuf.getWrittenBytes());
             }
         });
@@ -72,7 +72,7 @@ public class FabricPAPIProxyBridge implements ModInitializer, PAPIProxyBridge {
     }
 
     @Override
-    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsGson) {
         String json = formatPlaceholders(formatFor, (FabricUser) requester, text).getString();
         return CompletableFuture.completedFuture(json);
     }

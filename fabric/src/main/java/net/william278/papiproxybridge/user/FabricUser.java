@@ -20,16 +20,30 @@
 package net.william278.papiproxybridge.user;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.translation.GlobalTranslator;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Language;
 import net.william278.papiproxybridge.FabricPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class FabricUser implements OnlineUser {
 
@@ -64,15 +78,33 @@ public class FabricUser implements OnlineUser {
         player.networkHandler.sendPacket(packet);
     }
 
+    private Component getComponent(Text text) {
+        return GsonComponentSerializer.gson().deserialize(Text.Serializer.toJson(text));
+    }
+
+    private Component translateKeys(TranslatableComponent translatable) {
+        final String key = translatable.key();
+        final @Nullable String translated = Objects.requireNonNullElse(
+                Language.getInstance().get(key, translatable.fallback()),
+                key
+        );
+        return translatable.fallback(translated);
+    }
+
     @Override
-    public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message) {
+    public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsGson) {
         FabricPAPIProxyBridge bridge = (FabricPAPIProxyBridge) plugin;
-        message.setMessage(bridge.formatPlaceholders(
-                message.getFormatFor(),
-                this,
-                message.getMessage()
-        ).getString());
-        this.sendPluginMessage(plugin, message);
+        Text formatted = bridge.formatPlaceholders(message.getFormatFor(), this, message.getMessage());
+        Component original = getComponent(formatted);
+        Component transformed = original.children().stream().map(component -> {
+            if (component instanceof TranslatableComponent trans) {
+                return translateKeys(trans);
+            }
+            return component;
+        }).collect(Component.toComponent()).mergeStyle(original);
+        String response = wantsGson ? GsonComponentSerializer.gson().serialize(transformed) : formatted.getString();
+        message.setMessage(response);
+        this.sendPluginMessage(plugin, message, wantsGson);
     }
 
     @NotNull

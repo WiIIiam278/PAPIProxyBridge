@@ -47,6 +47,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     private final ConcurrentMap<UUID, CompletableFuture<String>> requests;
     private final ChannelIdentifier channelIdentifier;
+    private final ChannelIdentifier componentChannelIdentifier;
     private final ProxyServer server;
     private final Logger logger;
     private final Metrics.Factory metricsFactory;
@@ -58,12 +59,14 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         this.metricsFactory = metricsFactory;
         this.requests = Maps.newConcurrentMap();
         this.channelIdentifier = new LegacyChannelIdentifier(getChannel());
+        this.componentChannelIdentifier = new LegacyChannelIdentifier(getComponentChannel());
     }
 
     @Subscribe
     public void onProxyInitialization(@NotNull ProxyInitializeEvent event) {
         // Register the plugin message channel
-        server.getChannelRegistrar().register(getChannelIdentifier());
+        server.getChannelRegistrar().register(this.channelIdentifier);
+        server.getChannelRegistrar().register(this.componentChannelIdentifier);
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
@@ -76,7 +79,8 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     @Subscribe
     public void onPluginMessageReceived(@NotNull PluginMessageEvent event) {
-        if (!event.getIdentifier().equals(getChannelIdentifier())) {
+        ChannelIdentifier channelId = event.getIdentifier();
+        if (!channelId.equals(this.channelIdentifier) && !channelId.equals(this.componentChannelIdentifier)) {
             return;
         }
 
@@ -113,10 +117,5 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull String username) {
         return server.getPlayer(username).map(VelocityUser::adapt);
-    }
-
-    @NotNull
-    public ChannelIdentifier getChannelIdentifier() {
-        return channelIdentifier;
     }
 }
