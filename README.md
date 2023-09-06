@@ -65,4 +65,6 @@ api.formatPlaceholders("Hello %player_name%!", player).thenAccept(formatted -> {
 Never invoke `#join()` on calls to `#formatPlaceholders`; this is unsafe.
 
 PAPIProxyBridge caches resolved requests for 30000 milliseconds (30 seconds), to avoid causing excessive traffic over your server's network channels. You can adjust how long to cache requests for using the `PlaceholderAPI#setCacheExpiry(long)` method.
+
+There also exists `#formatComponentPlaceholders`. This method allows you to supply a string containing placeholders and receive an adventure component containing the formatted text, which may contain formatting and chat events.
 </details>
