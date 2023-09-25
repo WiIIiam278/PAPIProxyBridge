@@ -16,7 +16,7 @@
     "license": "Apache-2.0",
     "environment": "server",
     "entrypoints": {
-        "main": [
+        "server": [
             "net.william278.papiproxybridge.FabricPAPIProxyBridge"
         ]
     },
