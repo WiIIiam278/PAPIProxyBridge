@@ -22,7 +22,6 @@ package net.william278.papiproxybridge.user;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import net.william278.papiproxybridge.PAPIProxyBridge;
-import net.william278.papiproxybridge.VelocityPAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

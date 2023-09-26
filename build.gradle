@@ -69,10 +69,6 @@ subprojects {
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
 
-    if (['fabric'].contains(project.name)) {
-        compileJava.options.release.set 17
-    }
-
     if (['common'].contains(project.name)) {
         java {
             withSourcesJar()
