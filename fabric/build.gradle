@@ -17,8 +17,33 @@ dependencies {
     modCompileOnly "net.fabricmc:fabric-loader:$fabric_loader_version"
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
     modCompileOnly "eu.pb4:placeholder-api:2.1.3+"
+
     modImplementation include("net.kyori:adventure-platform-fabric:5.9.0")
 
     compileOnly "net.kyori:adventure-text-serializer-gson:4.14.0"
-    implementation project(path: ':common')
+    shadow project(path: ":common")
 }
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+
+    exclude('net.fabricmc:.*')
+    exclude('net.kyori:.*')
+    exclude '/mappings/*'
+
+    relocate 'org.jetbrains', 'net.william278.papiproxybridge.libraries'
+    relocate 'org.intellij', 'net.william278.papiproxybridge.libraries'
+    relocate 'net.jodah', 'net.william278.papiproxybridge.libraries'
+}
+
+remapJar {
+    dependsOn tasks.shadowJar
+    mustRunAfter tasks.shadowJar
+    inputFile = shadowJar.archiveFile.get()
+    addNestedDependencies = true
+
+    destinationDirectory.set(file("$rootDir/target/"))
+    archiveClassifier.set('')
+}
+
+shadowJar.finalizedBy(remapJar)
