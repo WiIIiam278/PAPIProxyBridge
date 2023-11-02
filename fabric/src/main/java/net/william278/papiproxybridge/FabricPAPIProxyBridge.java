@@ -50,7 +50,10 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
 
         CustomPayloadCallback.EVENT.register((channel, byteBuf) -> {
             if (channel.equals(getChannel()) || channel.equals(getComponentChannel())) {
-                this.handlePluginMessage(this, channel, byteBuf.getWrittenBytes());
+                var byteArray = new byte[byteBuf.writerIndex()];
+                byteBuf.getBytes(0, byteArray);
+
+                this.handlePluginMessage(this, channel, byteArray);
             }
         });
     }

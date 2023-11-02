@@ -19,13 +19,13 @@
 
 package net.william278.papiproxybridge.user;
 
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
+import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -65,9 +65,17 @@ public class FabricUser implements OnlineUser {
 
     @Override
     public void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBytes(message);
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(new Identifier(channel), buf);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(new CustomPayload() {
+            @Override
+            public void write(PacketByteBuf buf) {
+                buf.writeBytes(message);
+            }
+
+            @Override
+            public Identifier id() {
+                return new Identifier(channel);
+            }
+        });
         player.networkHandler.sendPacket(packet);
     }
 
