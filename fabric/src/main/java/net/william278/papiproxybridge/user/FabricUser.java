@@ -78,7 +78,7 @@ public class FabricUser implements OnlineUser {
     private Component translateKeys(TranslatableComponent translatable) {
         final String key = translatable.key();
         final @Nullable String translated = Objects.requireNonNullElse(
-                Language.getInstance().get(key, translatable.fallback()),
+                Language.getInstance().get(key),
                 key
         );
         return translatable.fallback(translated);
