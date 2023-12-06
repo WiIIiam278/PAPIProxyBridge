@@ -79,7 +79,7 @@ public class FabricUser implements OnlineUser {
         final String key = translatable.key();
         final @Nullable String translated = Objects.requireNonNullElse(
                 Language.getInstance().get(key),
-                key
+                Objects.requireNonNull(translatable.fallback(), key)
         );
         return translatable.fallback(translated);
     }
