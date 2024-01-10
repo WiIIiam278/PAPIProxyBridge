@@ -61,4 +61,8 @@ public interface OnlineUser {
 
     void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson);
 
+    default boolean justSwitchedServer() {
+        return false;
+    }
+
 }

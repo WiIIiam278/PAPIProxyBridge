@@ -19,29 +19,39 @@
 
 package net.william278.papiproxybridge;
 
+import com.google.common.collect.Lists;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.papi.Formatter;
 import net.william278.papiproxybridge.user.BukkitUser;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, PluginMessageListener {
+public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, PluginMessageListener, Listener {
     private Formatter formatter;
+    private List<BukkitUser> users;
+    private ExecutorService executorService;
 
     @Override
     public void onLoad() {
         // Initialize the formatter
         formatter = new Formatter();
+        executorService = Executors.newCachedThreadPool();
+        users = Lists.newCopyOnWriteArrayList();
     }
 
     @Override
@@ -55,6 +65,9 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         // Register the plugin with the API
         PlaceholderAPI.register(this);
 
+        // Register events
+        getServer().getPluginManager().registerEvents(this, this);
+
         // Metrics
         new Metrics(this, 17880);
 
@@ -66,27 +79,28 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         // Unregister the plugin message channel
         getServer().getMessenger().unregisterOutgoingPluginChannel(this);
         getServer().getMessenger().unregisterIncomingPluginChannel(this);
+        executorService.shutdown();
     }
 
     @Override
     @NotNull
     public List<BukkitUser> getOnlineUsers() {
-        return getServer().getOnlinePlayers().stream().map(BukkitUser::adapt).toList();
+        return users;
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
-        return Optional.ofNullable(getServer().getPlayer(uuid)).map(BukkitUser::adapt);
+        return users.stream().filter(user -> user.getUniqueId().equals(uuid)).map(u -> (OnlineUser) u).findFirst();
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull String username) {
-        return Optional.ofNullable(getServer().getPlayerExact(username)).map(BukkitUser::adapt);
+        return users.stream().filter(user -> user.getUsername().equals(username)).map(u -> (OnlineUser) u).findFirst();
     }
 
     @Override
     public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson) {
-        return CompletableFuture.completedFuture(formatPlaceholders(formatFor, (BukkitUser) requester, text));
+        return formatPlaceholders(formatFor, (BukkitUser) requester, text);
     }
 
     @Override
@@ -109,8 +123,27 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     }
 
     @NotNull
-    public final String formatPlaceholders(@NotNull UUID formatFor, @NotNull BukkitUser requester, @NotNull String text) {
-        return formatter.formatPlaceholders(formatFor, requester.getPlayer(), text);
+    public final CompletableFuture<String> formatPlaceholders(@NotNull UUID formatFor, @NotNull BukkitUser requester, @NotNull String text) {
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        getServer().getScheduler().runTaskLater(this,
+                () -> future.complete(formatter.formatPlaceholders(formatFor, requester.getPlayer(), text)),
+                requester.justSwitchedServer() ? 20 : 1);
+        return future;
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        final BukkitUser user = BukkitUser.adapt(event.getPlayer());
+        user.setJustSwitchedServer(true);
+        users.add(user);
+        getServer().getScheduler().runTaskLater(this,
+                () -> user.setJustSwitchedServer(false),
+                20);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        users.removeIf(user -> user.getUniqueId().equals(event.getPlayer().getUniqueId()));
     }
 
 }

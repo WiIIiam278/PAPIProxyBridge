@@ -22,6 +22,7 @@ package net.william278.papiproxybridge.user;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import net.william278.papiproxybridge.PAPIProxyBridge;
+import net.william278.papiproxybridge.VelocityPAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -30,6 +31,7 @@ import java.util.logging.Level;
 public class VelocityUser implements ProxyUser {
 
     private final Player player;
+    private boolean justSwitchedServer;
 
     private VelocityUser(@NotNull Player player) {
         this.player = player;
@@ -69,5 +71,14 @@ public class VelocityUser implements ProxyUser {
         return player.getCurrentServer()
                 .map(serverConnection -> serverConnection.getServerInfo().getName())
                 .orElse("unknown");
+    }
+
+    @Override
+    public boolean justSwitchedServer() {
+        return justSwitchedServer;
+    }
+
+    public void setJustSwitchedServer(boolean justSwitchedServer) {
+        this.justSwitchedServer = justSwitchedServer;
     }
 }

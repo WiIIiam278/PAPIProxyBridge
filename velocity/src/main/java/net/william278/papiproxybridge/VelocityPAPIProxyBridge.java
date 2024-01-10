@@ -19,10 +19,15 @@
 
 package net.william278.papiproxybridge;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
+import com.velocitypowered.api.event.connection.PostLoginEvent;
+import com.velocitypowered.api.event.player.ServerConnectedEvent;
+import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -40,6 +45,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 @Plugin(id = "papiproxybridge")
@@ -51,6 +57,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     private final ProxyServer server;
     private final Logger logger;
     private final Metrics.Factory metricsFactory;
+    private final List<VelocityUser> velocityUsers;
 
     @Inject
     public VelocityPAPIProxyBridge(ProxyServer server, org.slf4j.Logger logger, Metrics.Factory metricsFactory) {
@@ -60,6 +67,13 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         this.requests = Maps.newConcurrentMap();
         this.channelIdentifier = new LegacyChannelIdentifier(getChannel());
         this.componentChannelIdentifier = new LegacyChannelIdentifier(getComponentChannel());
+        this.velocityUsers = Lists.newCopyOnWriteArrayList();
+        this.loadOnlineUsers();
+    }
+
+    private void loadOnlineUsers() {
+        velocityUsers.clear();
+        server.getAllPlayers().forEach(player -> velocityUsers.add(VelocityUser.adapt(player)));
     }
 
     @Subscribe
@@ -88,6 +102,28 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         event.setResult(PluginMessageEvent.ForwardResult.handled());
     }
 
+    @Subscribe
+    public void onServerChange(@NotNull ServerConnectedEvent event) {
+        findPlayer(event.getPlayer().getUniqueId()).ifPresent(user -> {
+            final VelocityUser velocityUser = (VelocityUser) user;
+            velocityUser.setJustSwitchedServer(true);
+
+            server.getScheduler().buildTask(this,
+                            () -> velocityUser.setJustSwitchedServer(false))
+                    .delay(1, TimeUnit.SECONDS).schedule();
+        });
+    }
+
+    @Subscribe
+    public void onConnect(PostLoginEvent event) {
+        velocityUsers.add(VelocityUser.adapt(event.getPlayer()));
+    }
+
+    @Subscribe
+    public void onDisconnect(DisconnectEvent event) {
+        velocityUsers.removeIf(user -> user.getUniqueId().equals(event.getPlayer().getUniqueId()));
+    }
+
     @Override
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions) {
         if (exceptions.length > 0) {
@@ -106,16 +142,19 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Override
     @NotNull
     public List<VelocityUser> getOnlineUsers() {
-        return server.getAllPlayers().stream().map(VelocityUser::adapt).toList();
+//        return server.getAllPlayers().stream().map(VelocityUser::adapt).toList();
+        return velocityUsers;
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
-        return server.getPlayer(uuid).map(VelocityUser::adapt);
+        //return server.getPlayer(uuid).map(VelocityUser::adapt);
+        return velocityUsers.stream().filter(user -> user.getUniqueId().equals(uuid)).map(v -> (OnlineUser) v).findFirst();
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull String username) {
-        return server.getPlayer(username).map(VelocityUser::adapt);
+//        return server.getPlayer(username).map(VelocityUser::adapt);
+        return velocityUsers.stream().filter(user -> user.getUsername().equals(username)).map(v -> (OnlineUser) v).findFirst();
     }
 }
