@@ -24,6 +24,7 @@ import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
@@ -55,6 +56,18 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
             if (channel.equals(getChannel()) || channel.equals(getComponentChannel())) {
                 this.handlePluginMessage(this, channel, byteBuf.array());
             }
+        });
+
+        handleEvents();
+    }
+
+    private void handleEvents() {
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            FabricUser user = FabricUser.adapt(handler.player);
+            fabricUsers.add(user);
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            fabricUsers.removeIf(user -> user.getUniqueId().equals(handler.player.getUuid()));
         });
     }
 

@@ -4,7 +4,7 @@
   "package": "net.william278.papiproxybridge.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ServerPlayNetworkHandlerMixin"
+    "ServerCommonNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

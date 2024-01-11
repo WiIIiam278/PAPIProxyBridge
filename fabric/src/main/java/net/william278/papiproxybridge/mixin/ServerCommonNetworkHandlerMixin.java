@@ -19,20 +19,22 @@
 
 package net.william278.papiproxybridge.mixin;
 
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.server.network.ServerCommonNetworkHandler;
 import net.william278.papiproxybridge.events.CustomPayloadCallback;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ServerPlayNetworkHandler.class)
-public abstract class ServerPlayNetworkHandlerMixin {
-    @Inject(at = @At("HEAD"), method = "onCustomPayload(Lnet/minecraft/network/packet/c2s/play/CustomPayloadC2SPacket;)V")
+@Mixin(ServerCommonNetworkHandler.class)
+public abstract class ServerCommonNetworkHandlerMixin {
+    @Inject(at = @At("HEAD"), method = "onCustomPayload(Lnet/minecraft/network/packet/c2s/common/CustomPayloadC2SPacket;)V")
     private void papiProxyBridge$handlePluginMessage(CustomPayloadC2SPacket packet, CallbackInfo ci) {
-        PacketByteBuf buf =
-        CustomPayloadCallback.EVENT.invoker().invoke(packet.payload().id().toString(), packet.payload().
+        PacketByteBuf buf = PacketByteBufs.create();
+        packet.payload().write(buf);
+        CustomPayloadCallback.EVENT.invoker().invoke(packet.payload().id().toString(), buf);
     }
 }
