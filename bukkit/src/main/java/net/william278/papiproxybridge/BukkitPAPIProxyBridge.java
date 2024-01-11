@@ -38,20 +38,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, PluginMessageListener, Listener {
     private Formatter formatter;
     private final List<BukkitUser> users = Lists.newCopyOnWriteArrayList();
-    private ExecutorService executorService;
 
     @Override
     public void onLoad() {
         // Initialize the formatter
         formatter = new Formatter();
-        executorService = Executors.newCachedThreadPool();
     }
 
     @Override
@@ -82,7 +78,6 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         // Unregister the plugin message channel
         getServer().getMessenger().unregisterOutgoingPluginChannel(this);
         getServer().getMessenger().unregisterIncomingPluginChannel(this);
-        executorService.shutdown();
     }
 
     private void loadOnlinePlayers() {
