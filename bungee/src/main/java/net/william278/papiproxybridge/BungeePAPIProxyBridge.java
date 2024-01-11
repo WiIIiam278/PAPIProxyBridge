@@ -19,8 +19,10 @@
 
 package net.william278.papiproxybridge;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.md_5.bungee.api.event.PluginMessageEvent;
+import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
@@ -40,6 +42,7 @@ import java.util.logging.Level;
 public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridge, Listener {
 
     private final ConcurrentMap<UUID, CompletableFuture<String>> requests = Maps.newConcurrentMap();
+    private final List<BungeeUser> users = Lists.newCopyOnWriteArrayList();
 
     @Override
     public void onEnable() {
@@ -73,6 +76,18 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
         this.handlePluginMessage(this, event.getTag(), event.getData());
     }
 
+    @EventHandler
+    public void onJoin(PostLoginEvent event) {
+        final BungeeUser user = BungeeUser.adapt(event.getPlayer());
+        users.add(user);
+    }
+
+    @EventHandler
+    public void onQuit(PostLoginEvent event) {
+        final BungeeUser user = BungeeUser.adapt(event.getPlayer());
+        users.remove(user);
+    }
+
     @Override
     @NotNull
     public ConcurrentMap<UUID, CompletableFuture<String>> getRequests() {
@@ -82,17 +97,17 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     @Override
     @NotNull
     public List<BungeeUser> getOnlineUsers() {
-        return getProxy().getPlayers().stream().map(BungeeUser::adapt).toList();
+        return users;
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
-        return Optional.ofNullable(getProxy().getPlayer(uuid)).map(BungeeUser::adapt);
+        return users.stream().filter(user -> user.getUniqueId().equals(uuid)).map(u -> (OnlineUser) u).findFirst();
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull String username) {
-        return Optional.ofNullable(getProxy().getPlayer(username)).map(BungeeUser::adapt);
+        return users.stream().filter(user -> user.getUsername().equals(username)).map(u -> (OnlineUser) u).findFirst();
     }
 
     @Override

@@ -72,12 +72,11 @@ public class FabricUser implements OnlineUser {
         buf.writeBytes(message);
         ResolvablePayload resolvablePayload = PayloadHelper.readCustom(new Identifier(channel), buf, 100000, false);
         CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(resolvablePayload);
-        System.out.println("Sending packet");
         player.networkHandler.sendPacket(packet);
     }
 
     private Component getComponent(Text text) {
-        return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonTree(text).getAsString());
+        return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonTree(text).toString());
     }
 
     private Component translateKeys(TranslatableComponent translatable) {

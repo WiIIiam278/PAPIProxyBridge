@@ -120,6 +120,9 @@ public final class PlaceholderAPI {
      * @since 1.2
      */
     public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+        if(!requester.isConnected()) {
+            return CompletableFuture.completedFuture(text);
+        }
         if (cacheExpiry > 0 && cache.containsKey(formatFor) && cache.get(formatFor).containsKey(text)) {
             return CompletableFuture.completedFuture(cache.get(formatFor).get(text));
         }
@@ -195,6 +198,9 @@ public final class PlaceholderAPI {
      * @since 1.4
      */
     public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+        if(!requester.isConnected()) {
+            return CompletableFuture.completedFuture(Component.text(text));
+        }
         if (cacheExpiry > 0 && componentCache.containsKey(formatFor) && componentCache.get(formatFor).containsKey(text)) {
             return CompletableFuture.completedFuture(componentCache.get(formatFor).get(text));
         }

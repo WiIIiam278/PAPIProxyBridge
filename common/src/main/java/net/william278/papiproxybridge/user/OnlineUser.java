@@ -65,4 +65,8 @@ public interface OnlineUser {
         return false;
     }
 
+    default boolean isConnected() {
+        return true;
+    }
+
 }

@@ -34,16 +34,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, PluginMessageListener, Listener {
     private Formatter formatter;
-    private List<BukkitUser> users;
+    private final List<BukkitUser> users = Lists.newCopyOnWriteArrayList();
     private ExecutorService executorService;
 
     @Override
@@ -51,7 +52,6 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         // Initialize the formatter
         formatter = new Formatter();
         executorService = Executors.newCachedThreadPool();
-        users = Lists.newCopyOnWriteArrayList();
     }
 
     @Override

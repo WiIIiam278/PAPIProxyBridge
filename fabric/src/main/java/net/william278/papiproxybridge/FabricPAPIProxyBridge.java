@@ -19,16 +19,19 @@
 
 package net.william278.papiproxybridge;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
+import io.netty.buffer.ByteBuf;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
-import net.william278.papiproxybridge.events.CustomPayloadCallback;
 import net.william278.papiproxybridge.user.FabricUser;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
@@ -43,22 +46,18 @@ import java.util.logging.Level;
 
 public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAPIProxyBridge {
     public static final Logger LOGGER = LoggerFactory.getLogger("FabricPAPIProxyBridge");
+    public static final Identifier FORMAT = new Identifier("papiproxybridge", "format");
+    public static final Identifier COMPONENT = new Identifier("papiproxybridge", "component");
     private static MinecraftServer server;
-    private List<FabricUser> fabricUsers;
+    private final List<FabricUser> fabricUsers = Lists.newCopyOnWriteArrayList();
 
     @Override
     public void onInitializeServer() {
         PlaceholderAPI.register(this);
         ServerLifecycleEvents.SERVER_STARTING.register(server -> FabricPAPIProxyBridge.server = server);
-        fabricUsers = Lists.newArrayList();
-
-        CustomPayloadCallback.EVENT.register((channel, byteBuf) -> {
-            if (channel.equals(getChannel()) || channel.equals(getComponentChannel())) {
-                this.handlePluginMessage(this, channel, byteBuf.array());
-            }
-        });
 
         handleEvents();
+        handlePackets();
     }
 
     private void handleEvents() {
@@ -69,6 +68,23 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             fabricUsers.removeIf(user -> user.getUniqueId().equals(handler.player.getUuid()));
         });
+    }
+
+    private void handlePackets() {
+        ServerPlayNetworking.registerGlobalReceiver(FORMAT, (server, player, handler, buf, responseSender) -> {
+            this.handlePluginMessage(this, FORMAT.toString(), getWrittenBytes(buf));
+        });
+        ServerPlayNetworking.registerGlobalReceiver(COMPONENT, (server, player, handler, buf, responseSender) -> {
+            this.handlePluginMessage(this, COMPONENT.toString(), getWrittenBytes(buf));
+        });
+    }
+
+    @VisibleForTesting
+    public byte[] getWrittenBytes(ByteBuf buf) {
+        int i = buf.writerIndex();
+        byte[] bs = new byte[i];
+        buf.getBytes(0, bs);
+        return bs;
     }
 
     @Override
