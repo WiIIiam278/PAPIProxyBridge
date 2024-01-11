@@ -107,12 +107,12 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     }
 
     @Override
-    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson) {
+    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson, long requestTimeout) {
         return formatPlaceholders(formatFor, (BukkitUser) requester, text);
     }
 
     @Override
-    public CompletableFuture<List<String>> findServers() {
+    public CompletableFuture<List<String>> findServers(long requestTimeout) {
         throw new UnsupportedOperationException("Cannot fetch the list of servers from a backend Bukkit server.");
     }
 

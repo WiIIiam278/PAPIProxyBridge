@@ -19,7 +19,8 @@
 
 package net.william278.papiproxybridge.mixin;
 
-import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.william278.papiproxybridge.events.CustomPayloadCallback;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,6 +32,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ServerPlayNetworkHandlerMixin {
     @Inject(at = @At("HEAD"), method = "onCustomPayload(Lnet/minecraft/network/packet/c2s/play/CustomPayloadC2SPacket;)V")
     private void papiProxyBridge$handlePluginMessage(CustomPayloadC2SPacket packet, CallbackInfo ci) {
-        CustomPayloadCallback.EVENT.invoker().invoke(packet.getChannel().toString(), packet.getData());
+        PacketByteBuf buf =
+        CustomPayloadCallback.EVENT.invoker().invoke(packet.payload().id().toString(), packet.payload().
     }
 }

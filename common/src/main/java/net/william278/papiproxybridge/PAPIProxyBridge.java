@@ -94,9 +94,9 @@ public interface PAPIProxyBridge {
         }
     }
 
-    CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, @NotNull boolean wantsJson);
+    CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson, long requestTimeout);
 
-    CompletableFuture<List<String>> findServers();
+    CompletableFuture<List<String>> findServers(long requestTimeout);
 
     void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions);
 
