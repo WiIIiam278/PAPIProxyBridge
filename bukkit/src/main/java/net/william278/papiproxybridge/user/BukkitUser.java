@@ -31,6 +31,7 @@ import java.util.UUID;
 public final class BukkitUser implements OnlineUser {
 
     private final Player player;
+    private boolean justSwitchedServer;
 
     private BukkitUser(@NotNull Player player) {
         this.player = player;
@@ -60,14 +61,24 @@ public final class BukkitUser implements OnlineUser {
 
     @Override
     public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
-        String formatted = ((BukkitPAPIProxyBridge) plugin).formatPlaceholders(message.getFormatFor(), this, message.getMessage());
-        message.setMessage(wantsJson ? GsonComponentSerializer.gson().serialize(Component.text(formatted)) : formatted);
-        this.sendPluginMessage(plugin, message, wantsJson);
+        ((BukkitPAPIProxyBridge) plugin).formatPlaceholders(message.getFormatFor(), this, message.getMessage()).thenAccept(formatted -> {
+            message.setMessage(wantsJson ? GsonComponentSerializer.gson().serialize(Component.text(formatted)) : formatted);
+            this.sendPluginMessage(plugin, message, wantsJson);
+        });
     }
 
     @NotNull
     public Player getPlayer() {
         return player;
+    }
+
+    @Override
+    public boolean justSwitchedServer() {
+        return justSwitchedServer;
+    }
+
+    public void setJustSwitchedServer(boolean justSwitchedServer) {
+        this.justSwitchedServer = justSwitchedServer;
     }
 
 }

@@ -20,12 +20,14 @@
 package net.william278.papiproxybridge.user;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.impl.networking.payload.PayloadHelper;
+import net.fabricmc.fabric.impl.networking.payload.ResolvablePayload;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -38,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.UUID;
 
+@SuppressWarnings("apiUnstable")
 public class FabricUser implements OnlineUser {
 
     private final ServerPlayerEntity player;
@@ -67,12 +70,13 @@ public class FabricUser implements OnlineUser {
     public void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeBytes(message);
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(new Identifier(channel), buf);
+        ResolvablePayload resolvablePayload = PayloadHelper.readCustom(new Identifier(channel), buf, 100000, false);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(resolvablePayload);
         player.networkHandler.sendPacket(packet);
     }
 
     private Component getComponent(Text text) {
-        return GsonComponentSerializer.gson().deserialize(Text.Serializer.toJson(text));
+        return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonTree(text).toString());
     }
 
     private Component translateKeys(TranslatableComponent translatable) {

@@ -35,16 +35,16 @@ import java.util.stream.Collectors;
 
 public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
 
-    long REQUEST_TIMEOUT_MILLIS = 800;
 
     @NotNull
     ConcurrentMap<UUID, CompletableFuture<String>> getRequests();
 
-    default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson) {
+    default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor,
+                                                    boolean wantsJson, long requestTimeout) {
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
         getRequests().putIfAbsent(request.getUuid(), future);
-        future.orTimeout(REQUEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS).exceptionally(throwable -> {
+        future.orTimeout(requester.justSwitchedServer() ? requestTimeout * 2L : requestTimeout, TimeUnit.MILLISECONDS).exceptionally(throwable -> {
             getRequests().remove(request.getUuid());
             return text;
         });
@@ -52,14 +52,15 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
         return future;
     }
 
-    default CompletableFuture<List<String>> findServers() {
+    default CompletableFuture<List<String>> findServers(long requestTimeout) {
         final CompletableFuture<List<String>> future = new CompletableFuture<>();
         final Map<String, CompletableFuture<Boolean>> serverMap = getOnlineUsers().stream()
                 .filter(user -> user instanceof ProxyUser)
                 .map(user -> (ProxyUser) user)
+                .filter(OnlineUser::isConnected)
                 .collect(Collectors.toConcurrentMap(
                         ProxyUser::getServerName,
-                        user -> createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId(), false)
+                        user -> createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId(), false, requestTimeout)
                                 .thenApply(message -> message.equals(HANDSHAKE_RESPONSE))
                 ));
 

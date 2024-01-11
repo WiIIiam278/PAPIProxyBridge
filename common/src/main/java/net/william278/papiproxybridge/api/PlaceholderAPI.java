@@ -33,6 +33,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
  * The main API for the ProxyPlaceholderAPI plugin
@@ -119,10 +120,13 @@ public final class PlaceholderAPI {
      * @since 1.2
      */
     public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+        if (!requester.isConnected()) {
+            return CompletableFuture.completedFuture(text);
+        }
         if (cacheExpiry > 0 && cache.containsKey(formatFor) && cache.get(formatFor).containsKey(text)) {
             return CompletableFuture.completedFuture(cache.get(formatFor).get(text));
         }
-        return plugin.createRequest(text, requester, formatFor, false)
+        return plugin.createRequest(text, requester, formatFor, false, requestTimeout)
                 .thenApply(formatted -> {
                     cache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
                                     .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
@@ -131,7 +135,10 @@ public final class PlaceholderAPI {
                     return formatted;
                 })
                 .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
-                .exceptionally(throwable -> text);
+                .exceptionally(throwable -> {
+                    plugin.log(Level.SEVERE, "An error occurred whilst parsing placeholders: ", throwable);
+                    return text;
+                });
     }
 
     /**
@@ -191,10 +198,13 @@ public final class PlaceholderAPI {
      * @since 1.4
      */
     public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+        if (!requester.isConnected()) {
+            return CompletableFuture.completedFuture(Component.text(text));
+        }
         if (cacheExpiry > 0 && componentCache.containsKey(formatFor) && componentCache.get(formatFor).containsKey(text)) {
             return CompletableFuture.completedFuture(componentCache.get(formatFor).get(text));
         }
-        return plugin.createRequest(text, requester, formatFor, true)
+        return plugin.createRequest(text, requester, formatFor, true, requestTimeout)
                 .thenApply(formatted -> {
                     Component deserialized = GsonComponentSerializer.gson().deserializeOr(formatted, Component.text(formatted));
                     componentCache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
@@ -252,7 +262,6 @@ public final class PlaceholderAPI {
     }
 
 
-
     /**
      * Fetch the list of backend servers with PAPIProxyBridge installed
      *
@@ -262,7 +271,7 @@ public final class PlaceholderAPI {
      * @since 1.3
      */
     public CompletableFuture<List<String>> findServers() throws UnsupportedOperationException {
-        return plugin.findServers();
+        return plugin.findServers(requestTimeout);
     }
 
     /**
@@ -298,4 +307,24 @@ public final class PlaceholderAPI {
         this.cacheExpiry = cacheExpiry;
     }
 
+    /**
+     * Returns the timeout for requesting formatting from the proxy in milliseconds.
+     * If a request is not completed within this time, the original text will be returned.
+     *
+     * @return The timeout in milliseconds
+     * @since 1.2
+     */
+    public long getRequestTimeout() {
+        return requestTimeout;
+    }
+
+    /**
+     * Returns the expiry time for the cache in milliseconds.
+     *
+     * @return The expiry time for the cache in milliseconds
+     * @since 1.2
+     */
+    public long getCacheExpiry() {
+        return cacheExpiry;
+    }
 }

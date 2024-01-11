@@ -20,9 +20,6 @@
             "net.william278.papiproxybridge.FabricPAPIProxyBridge"
         ]
     },
-    "mixins": [
-        "papiproxybridge.mixins.json"
-    ],
     "depends": {
         "fabricloader": ">=${fabric_loader_version}",
         "minecraft": [">=${fabric_minecraft_version}"],

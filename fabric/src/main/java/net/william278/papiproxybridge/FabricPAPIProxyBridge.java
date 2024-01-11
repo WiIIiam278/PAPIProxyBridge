@@ -19,14 +19,19 @@
 
 package net.william278.papiproxybridge;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
+import io.netty.buffer.ByteBuf;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
-import net.william278.papiproxybridge.events.CustomPayloadCallback;
 import net.william278.papiproxybridge.user.FabricUser;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
@@ -41,44 +46,71 @@ import java.util.logging.Level;
 
 public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAPIProxyBridge {
     public static final Logger LOGGER = LoggerFactory.getLogger("FabricPAPIProxyBridge");
+    public static final Identifier FORMAT = new Identifier("papiproxybridge", "format");
+    public static final Identifier COMPONENT = new Identifier("papiproxybridge", "component");
     private static MinecraftServer server;
+    private final List<FabricUser> fabricUsers = Lists.newCopyOnWriteArrayList();
 
     @Override
     public void onInitializeServer() {
         PlaceholderAPI.register(this);
         ServerLifecycleEvents.SERVER_STARTING.register(server -> FabricPAPIProxyBridge.server = server);
 
-        CustomPayloadCallback.EVENT.register((channel, byteBuf) -> {
-            if (channel.equals(getChannel()) || channel.equals(getComponentChannel())) {
-                this.handlePluginMessage(this, channel, byteBuf.getWrittenBytes());
-            }
+        handleEvents();
+        handlePackets();
+    }
+
+    private void handleEvents() {
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            FabricUser user = FabricUser.adapt(handler.player);
+            fabricUsers.add(user);
         });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            fabricUsers.removeIf(user -> user.getUniqueId().equals(handler.player.getUuid()));
+        });
+    }
+
+    private void handlePackets() {
+        ServerPlayNetworking.registerGlobalReceiver(FORMAT, (server, player, handler, buf, responseSender) -> {
+            this.handlePluginMessage(this, FORMAT.toString(), getWrittenBytes(buf));
+        });
+        ServerPlayNetworking.registerGlobalReceiver(COMPONENT, (server, player, handler, buf, responseSender) -> {
+            this.handlePluginMessage(this, COMPONENT.toString(), getWrittenBytes(buf));
+        });
+    }
+
+    @VisibleForTesting
+    public byte[] getWrittenBytes(ByteBuf buf) {
+        int i = buf.writerIndex();
+        byte[] bs = new byte[i];
+        buf.getBytes(0, bs);
+        return bs;
     }
 
     @Override
     @NotNull
     public List<? extends OnlineUser> getOnlineUsers() {
-        return server.getPlayerManager().getPlayerList().stream().map(FabricUser::adapt).toList();
+        return fabricUsers;
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
-        return Optional.ofNullable(server.getPlayerManager().getPlayer(uuid)).map(FabricUser::adapt);
+        return fabricUsers.stream().filter(user -> user.getUniqueId().equals(uuid)).map(u -> (OnlineUser) u).findFirst();
     }
 
     @Override
     public Optional<OnlineUser> findPlayer(@NotNull String username) {
-        return Optional.ofNullable(server.getPlayerManager().getPlayer(username)).map(FabricUser::adapt);
+        return fabricUsers.stream().filter(user -> user.getUsername().equals(username)).map(u -> (OnlineUser) u).findFirst();
     }
 
     @Override
-    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson) {
+    public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson, long requestTimeout) {
         String json = formatPlaceholders(formatFor, (FabricUser) requester, text).getString();
         return CompletableFuture.completedFuture(json);
     }
 
     @Override
-    public CompletableFuture<List<String>> findServers() {
+    public CompletableFuture<List<String>> findServers(long requestTimeout) {
         throw new UnsupportedOperationException("Cannot fetch the list of servers from a backend Fabric server.");
     }
 

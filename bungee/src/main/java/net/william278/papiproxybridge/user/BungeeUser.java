@@ -60,4 +60,9 @@ public class BungeeUser implements ProxyUser {
     public String getServerName() {
         return player.getServer().getInfo().getName();
     }
+
+    @Override
+    public boolean isConnected() {
+        return player.isConnected();
+    }
 }
