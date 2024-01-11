@@ -68,6 +68,9 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         // Register events
         getServer().getPluginManager().registerEvents(this, this);
 
+        // Load online players
+        loadOnlinePlayers();
+
         // Metrics
         new Metrics(this, 17880);
 
@@ -80,6 +83,11 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         getServer().getMessenger().unregisterOutgoingPluginChannel(this);
         getServer().getMessenger().unregisterIncomingPluginChannel(this);
         executorService.shutdown();
+    }
+
+    private void loadOnlinePlayers() {
+        users.clear();
+        getServer().getOnlinePlayers().forEach(player -> users.add(BukkitUser.adapt(player)));
     }
 
     @Override
@@ -127,7 +135,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         final CompletableFuture<String> future = new CompletableFuture<>();
         getServer().getScheduler().runTaskLater(this,
                 () -> future.complete(formatter.formatPlaceholders(formatFor, requester.getPlayer(), text)),
-                requester.justSwitchedServer() ? 20 : 1);
+                requester.justSwitchedServer() ? 2 : 1);
         return future;
     }
 
@@ -138,7 +146,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         users.add(user);
         getServer().getScheduler().runTaskLater(this,
                 () -> user.setJustSwitchedServer(false),
-                20);
+                10);
     }
 
     @EventHandler

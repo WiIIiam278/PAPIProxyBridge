@@ -79,6 +79,7 @@ public interface PAPIProxyBridge {
         final String username = inputStream.readUTF();
         final OnlineUser user = plugin.findPlayer(username).orElse(null);
         if (user == null) {
+            plugin.log(Level.SEVERE, "Received plugin message from unknown user " + username);
             return;
         }
 

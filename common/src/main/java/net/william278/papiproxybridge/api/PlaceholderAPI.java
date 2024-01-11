@@ -33,6 +33,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
  * The main API for the ProxyPlaceholderAPI plugin
@@ -119,11 +120,6 @@ public final class PlaceholderAPI {
      * @since 1.2
      */
     public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
-        if (requester.justSwitchedServer()) {
-            final CompletableFuture<String> future = new CompletableFuture<>();
-            CompletableFuture.runAsync(() -> future.complete(formatPlaceholders(text, requester, formatFor).join()),
-                    CompletableFuture.delayedExecutor(1001, TimeUnit.MILLISECONDS));
-        }
         if (cacheExpiry > 0 && cache.containsKey(formatFor) && cache.get(formatFor).containsKey(text)) {
             return CompletableFuture.completedFuture(cache.get(formatFor).get(text));
         }
@@ -136,7 +132,10 @@ public final class PlaceholderAPI {
                     return formatted;
                 })
                 .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
-                .exceptionally(throwable -> text);
+                .exceptionally(throwable -> {
+                    plugin.log(Level.SEVERE, "An error occurred whilst parsing placeholders: ", throwable);
+                    return text;
+                });
     }
 
     /**
@@ -196,12 +195,6 @@ public final class PlaceholderAPI {
      * @since 1.4
      */
     public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
-        if (requester.justSwitchedServer()) {
-            final CompletableFuture<Component> future = new CompletableFuture<>();
-            CompletableFuture.runAsync(() -> future.complete(formatComponentPlaceholders(text, requester, formatFor).join()), CompletableFuture.delayedExecutor(1001, TimeUnit.MILLISECONDS));
-        }
-
-
         if (cacheExpiry > 0 && componentCache.containsKey(formatFor) && componentCache.get(formatFor).containsKey(text)) {
             return CompletableFuture.completedFuture(componentCache.get(formatFor).get(text));
         }
@@ -261,7 +254,6 @@ public final class PlaceholderAPI {
                 .map(requester -> formatComponentPlaceholders(text, requester, player))
                 .orElse(CompletableFuture.completedFuture(Component.text(text)));
     }
-
 
 
     /**
