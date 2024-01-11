@@ -19,22 +19,36 @@
 
 package net.william278.papiproxybridge.mixin;
 
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.network.PacketByteBuf;
+import net.fabricmc.fabric.impl.networking.payload.RetainedPayload;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.server.network.ServerCommonNetworkHandler;
 import net.william278.papiproxybridge.events.CustomPayloadCallback;
+import org.slf4j.Logger;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerCommonNetworkHandler.class)
 public abstract class ServerCommonNetworkHandlerMixin {
+    @Shadow @Final private static Logger LOGGER;
+
     @Inject(at = @At("HEAD"), method = "onCustomPayload(Lnet/minecraft/network/packet/c2s/common/CustomPayloadC2SPacket;)V")
     private void papiProxyBridge$handlePluginMessage(CustomPayloadC2SPacket packet, CallbackInfo ci) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        packet.payload().write(buf);
-        CustomPayloadCallback.EVENT.invoker().invoke(packet.payload().id().toString(), buf);
+        try {
+            if (!(packet.payload() instanceof RetainedPayload retainedPayload)) {
+                System.out.println("Different: " + packet.payload().getClass().getName());
+                return;
+            }
+            retainedPayload.buf().resetReaderIndex();
+            retainedPayload.buf().skipBytes(retainedPayload.buf().readableBytes());
+            retainedPayload.buf().release();
+            System.out.println(retainedPayload.buf().copy());
+            CustomPayloadCallback.EVENT.invoker().invoke(packet.payload().id().toString(), retainedPayload.buf());
+        } catch (Exception e) {
+            LOGGER.error("Exception handling plugin message", e);
+        }
     }
 }

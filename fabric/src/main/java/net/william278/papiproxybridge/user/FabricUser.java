@@ -20,6 +20,8 @@
 package net.william278.papiproxybridge.user;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.impl.networking.payload.PayloadHelper;
+import net.fabricmc.fabric.impl.networking.payload.ResolvablePayload;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -28,6 +30,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Language;
 import net.william278.papiproxybridge.FabricPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
@@ -37,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.UUID;
 
+@SuppressWarnings("apiUnstable")
 public class FabricUser implements OnlineUser {
 
     private final ServerPlayerEntity player;
@@ -66,7 +70,9 @@ public class FabricUser implements OnlineUser {
     public void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeBytes(message);
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(buf);
+        ResolvablePayload resolvablePayload = PayloadHelper.readCustom(new Identifier(channel), buf, 100000, false);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(resolvablePayload);
+        System.out.println("Sending packet");
         player.networkHandler.sendPacket(packet);
     }
 

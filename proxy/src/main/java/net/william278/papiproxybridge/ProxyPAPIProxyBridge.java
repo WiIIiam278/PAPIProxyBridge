@@ -40,7 +40,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
     ConcurrentMap<UUID, CompletableFuture<String>> getRequests();
 
     default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor,
-                                                    boolean wantsJson, int requestTimeout) {
+                                                    boolean wantsJson, long requestTimeout) {
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
         getRequests().putIfAbsent(request.getUuid(), future);
