@@ -1,6 +1,7 @@
 dependencies {
     implementation project(path: ':common')
 
+    compileOnly 'com.google.guava:guava:33.0.0-jre'
     compileOnly 'org.jetbrains:annotations:24.0.1'
 }
 
@@ -8,4 +9,6 @@ shadowJar {
     relocate 'org.jetbrains', 'net.william278.papiproxybridge.libraries'
     relocate 'org.intellij', 'net.william278.papiproxybridge.libraries'
     relocate 'net.jodah', 'net.william278.papiproxybridge.libraries'
+
+    minimize()
 }

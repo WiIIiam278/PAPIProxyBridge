@@ -57,7 +57,7 @@ public final class PlaceholderAPI {
     private static PAPIProxyBridge plugin;
     private final ConcurrentMap<UUID, ExpiringMap<String, String>> cache;
     private final ConcurrentMap<UUID, ExpiringMap<String, Component>> componentCache;
-    private long requestTimeout = 400;
+    private long requestTimeout = 1000;
     private long cacheExpiry = 30000;
 
     /**
@@ -136,7 +136,9 @@ public final class PlaceholderAPI {
                 })
                 .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
                 .exceptionally(throwable -> {
-                    plugin.log(Level.SEVERE, "An error occurred whilst parsing placeholders: ", throwable);
+                    if (requester.isConnected()) {
+                        plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername());
+                    }
                     return text;
                 });
     }
@@ -214,7 +216,12 @@ public final class PlaceholderAPI {
                     return deserialized;
                 })
                 .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
-                .exceptionally(throwable -> Component.text(text));
+                .exceptionally(throwable -> {
+                    if (requester.isConnected()) {
+                        plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername());
+                    }
+                    return Component.text(text);
+                });
     }
 
     /**

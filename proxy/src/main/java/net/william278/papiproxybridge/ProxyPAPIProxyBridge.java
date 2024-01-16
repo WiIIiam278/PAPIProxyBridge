@@ -19,6 +19,8 @@
 
 package net.william278.papiproxybridge;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.ProxyUser;
 import net.william278.papiproxybridge.user.Request;
@@ -28,9 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
@@ -54,20 +54,19 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
 
     default CompletableFuture<List<String>> findServers(long requestTimeout) {
         final CompletableFuture<List<String>> future = new CompletableFuture<>();
-        final Map<String, CompletableFuture<Boolean>> serverMap = getOnlineUsers().stream()
+        final Multimap<String, CompletableFuture<Boolean>> serverMap = getOnlineUsers().stream()
                 .filter(user -> user instanceof ProxyUser)
                 .map(user -> (ProxyUser) user)
                 .filter(OnlineUser::isConnected)
-                .collect(Collectors.toConcurrentMap(
-                        ProxyUser::getServerName,
-                        user -> createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId(), false, requestTimeout)
-                                .thenApply(message -> message.equals(HANDSHAKE_RESPONSE))
-                ));
+                .collect(() -> Multimaps.newListMultimap(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new),
+                        (map, user) -> map.put(user.getServerName(), createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId(), false, requestTimeout)
+                                .thenApply(message -> message.equals(HANDSHAKE_RESPONSE))),
+                        Multimap::putAll);
 
         CompletableFuture.allOf(serverMap.values().toArray(new CompletableFuture[0]))
                 .thenRun(() -> {
-                    final Set<String> servers = serverMap.entrySet().stream()
-                            .filter(entry -> entry.getValue().getNow(false))
+                    final Set<String> servers = serverMap.asMap().entrySet().stream()
+                            .filter(entry -> entry.getValue().stream().anyMatch(CompletableFuture::join))
                             .map(Map.Entry::getKey)
                             .collect(Collectors.toSet());
                     future.complete(List.copyOf(servers));
