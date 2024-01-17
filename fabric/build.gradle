@@ -20,7 +20,7 @@ dependencies {
 
     modImplementation include("net.kyori:adventure-api:4.14.0")
 
-    compileOnly "net.kyori:adventure-text-serializer-gson:4.14.0"
+    compileOnly "net.kyori:adventure-text-serializer-gson:4.15.0"
     shadow project(path: ":common")
 }
 
