@@ -2,7 +2,7 @@ dependencies {
     implementation project(path: ':common')
 
     compileOnly 'com.google.guava:guava:33.0.0-jre'
-    compileOnly 'org.jetbrains:annotations:24.0.1'
+    compileOnly 'org.jetbrains:annotations:24.1.0'
 }
 
 shadowJar {
