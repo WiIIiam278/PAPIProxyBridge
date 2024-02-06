@@ -27,8 +27,10 @@ allprojects {
     apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'java'
 
+    version = "$ext.plugin_version${versionMetadata()}"
+
     compileJava.options.encoding = 'UTF-8'
-    compileJava.options.release.set 16
+    compileJava.options.release.set 17
     javadoc.options.encoding = 'UTF-8'
     javadoc.options.addStringOption('Xdoclint:none', '-quiet')
 
@@ -61,6 +63,13 @@ allprojects {
         filesMatching(['**/*.json', '**/*.yml']) {
             filter ReplaceTokens as Class, beginToken: '${', endToken: '}',
                     tokens: rootProject.ext.properties
+        }
+    }
+
+    jar {
+        manifest {
+            attributes 'Implementation-Title': 'Gradle Quickstart',
+                    'Implementation-Version': version
         }
     }
 }

@@ -19,7 +19,7 @@
 
 package net.william278.papiproxybridge;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.papi.Formatter;
@@ -35,18 +35,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, PluginMessageListener, Listener {
+
     private Formatter formatter;
-    private final List<BukkitUser> users = Lists.newCopyOnWriteArrayList();
+    private Map<UUID, BukkitUser> users;
 
     @Override
     public void onLoad() {
+        users = Maps.newConcurrentMap();
         // Initialize the formatter
         formatter = new Formatter();
     }
@@ -71,7 +71,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         // Metrics
         new Metrics(this, 17880);
 
-        getLogger().info("PAPIProxyBridge (" + getServer().getName() + ") has been enabled!");
+        getLogger().info(getLoadMessage());
     }
 
     @Override
@@ -83,23 +83,30 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     private void loadOnlinePlayers() {
         users.clear();
-        getServer().getOnlinePlayers().forEach(player -> users.add(BukkitUser.adapt(player)));
+        getServer().getOnlinePlayers().forEach(player -> users.put(player.getUniqueId(), BukkitUser.adapt(player)));
+    }
+
+    @Override
+    public String getServerType() {
+        return getServer().getName();
     }
 
     @Override
     @NotNull
-    public List<BukkitUser> getOnlineUsers() {
-        return users;
+    public Collection<BukkitUser> getOnlineUsers() {
+        return users.values();
     }
 
     @Override
-    public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
-        return users.stream().filter(user -> user.getUniqueId().equals(uuid)).map(u -> (OnlineUser) u).findFirst();
+    public Optional<BukkitUser> findPlayer(@NotNull UUID uuid) {
+        return Optional.ofNullable(users.get(uuid));
     }
 
     @Override
-    public Optional<OnlineUser> findPlayer(@NotNull String username) {
-        return users.stream().filter(user -> user.getUsername().equals(username)).map(u -> (OnlineUser) u).findFirst();
+    public Optional<BukkitUser> findPlayer(@NotNull String username) {
+        return users.values().stream()
+                .filter(user -> user.getPlayer().getName().equals(username))
+                .findFirst();
     }
 
     @Override
@@ -108,7 +115,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     }
 
     @Override
-    public CompletableFuture<List<String>> findServers(long requestTimeout) {
+    public CompletableFuture<Set<String>> findServers(long requestTimeout) {
         throw new UnsupportedOperationException("Cannot fetch the list of servers from a backend Bukkit server.");
     }
 
@@ -139,15 +146,15 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     public void onJoin(PlayerJoinEvent event) {
         final BukkitUser user = BukkitUser.adapt(event.getPlayer());
         user.setJustSwitchedServer(true);
-        users.add(user);
+        users.put(user.getUniqueId(), user);
         EntityScheduler.get(this, user.getPlayer()).runLater(
                 () -> user.setJustSwitchedServer(false),
-                10);
+                20);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        users.removeIf(user -> user.getUniqueId().equals(event.getPlayer().getUniqueId()));
+        users.remove(event.getPlayer().getUniqueId());
     }
 
 }

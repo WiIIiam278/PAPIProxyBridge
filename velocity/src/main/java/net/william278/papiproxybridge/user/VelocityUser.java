@@ -81,4 +81,9 @@ public class VelocityUser implements ProxyUser {
     public void setJustSwitchedServer(boolean justSwitchedServer) {
         this.justSwitchedServer = justSwitchedServer;
     }
+
+    @Override
+    public boolean isConnected() {
+        return player.isActive();
+    }
 }

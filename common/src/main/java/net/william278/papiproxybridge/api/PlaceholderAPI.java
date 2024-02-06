@@ -28,11 +28,10 @@ import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 
 /**
@@ -59,6 +58,7 @@ public final class PlaceholderAPI {
     private final ConcurrentMap<UUID, ExpiringMap<String, Component>> componentCache;
     private long requestTimeout = 1000;
     private long cacheExpiry = 30000;
+    private int retryTimes = 3;
 
     /**
      * <b>Internal only</b> - Create a new instance of the API
@@ -119,7 +119,13 @@ public final class PlaceholderAPI {
      * @return A future that will supply the formatted text
      * @since 1.2
      */
-    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser requester,
+                                                        @NotNull UUID formatFor) {
+        return formatPlaceholders(text, requester, formatFor, retryTimes);
+    }
+
+    private CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull OnlineUser requester,
+                                                         @NotNull UUID formatFor, int times) {
         if (!requester.isConnected()) {
             return CompletableFuture.completedFuture(text);
         }
@@ -136,8 +142,22 @@ public final class PlaceholderAPI {
                 })
                 .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
                 .exceptionally(throwable -> {
-                    if (requester.isConnected()) {
-                        plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername());
+                    if (!requester.isConnected()) {
+                        return text;
+                    }
+                    if (times > 0) {
+                        try {
+                            return formatPlaceholders(text, requester, formatFor, times - 1).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), e);
+                            return text;
+                        }
+                    }
+                    if (Arrays.stream(throwable.getSuppressed()).anyMatch(TimeoutException.class::isInstance)) {
+                        plugin.log(Level.WARNING, "Timed out formatting placeholders for " + requester.getUsername() +
+                                " timeout: " + requestTimeout + "ms");
+                    } else {
+                        plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
                     }
                     return text;
                 });
@@ -167,7 +187,8 @@ public final class PlaceholderAPI {
      * @return A future that will supply the formatted text. If the requester is not online, the original text will be returned
      * @since 1.2
      */
-    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull UUID requester, @NotNull UUID formatFor) {
+    public CompletableFuture<String> formatPlaceholders(@NotNull String text, @NotNull UUID requester,
+                                                        @NotNull UUID formatFor) {
         return plugin.findPlayer(requester)
                 .map(onlineRequester -> formatPlaceholders(text, onlineRequester, formatFor))
                 .orElse(CompletableFuture.completedFuture(text));
@@ -199,7 +220,13 @@ public final class PlaceholderAPI {
      * @return A future that will supply the formatted component
      * @since 1.4
      */
-    public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor) {
+    public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull OnlineUser requester,
+                                                                    @NotNull UUID formatFor) {
+        return formatComponentPlaceholders(text, requester, formatFor, retryTimes);
+    }
+
+    private CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull OnlineUser requester,
+                                                                     @NotNull UUID formatFor, int times) {
         if (!requester.isConnected()) {
             return CompletableFuture.completedFuture(Component.text(text));
         }
@@ -208,7 +235,7 @@ public final class PlaceholderAPI {
         }
         return plugin.createRequest(text, requester, formatFor, true, requestTimeout)
                 .thenApply(formatted -> {
-                    Component deserialized = GsonComponentSerializer.gson().deserializeOr(formatted, Component.text(formatted));
+                    final Component deserialized = GsonComponentSerializer.gson().deserializeOr(formatted, Component.text(formatted));
                     componentCache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
                                     .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
                                     .build())
@@ -217,8 +244,22 @@ public final class PlaceholderAPI {
                 })
                 .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
                 .exceptionally(throwable -> {
-                    if (requester.isConnected()) {
-                        plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername());
+                    if (!requester.isConnected()) {
+                        return Component.text(text);
+                    }
+                    if (times > 0) {
+                        try {
+                            return formatComponentPlaceholders(text, requester, formatFor, times - 1).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), e);
+                            return Component.text(text);
+                        }
+                    }
+                    if (Arrays.stream(throwable.getSuppressed()).anyMatch(TimeoutException.class::isInstance)) {
+                        plugin.log(Level.WARNING, "Timed out formatting placeholders for " + requester.getUsername() +
+                                " timeout: " + requestTimeout + "ms");
+                    } else {
+                        plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
                     }
                     return Component.text(text);
                 });
@@ -248,7 +289,8 @@ public final class PlaceholderAPI {
      * @return A future that will supply the formatted component. If the requester is not online, the original text will be returned
      * @since 1.4
      */
-    public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull UUID requester, @NotNull UUID formatFor) {
+    public CompletableFuture<Component> formatComponentPlaceholders(@NotNull String text, @NotNull UUID requester,
+                                                                    @NotNull UUID formatFor) {
         return plugin.findPlayer(requester)
                 .map(onlineRequester -> formatComponentPlaceholders(text, onlineRequester, formatFor))
                 .orElse(CompletableFuture.completedFuture(Component.text(text)));
@@ -277,7 +319,7 @@ public final class PlaceholderAPI {
      * @apiNote This method can only be used from the proxy; it will throw an exception if called from a backend server
      * @since 1.3
      */
-    public CompletableFuture<List<String>> findServers() throws UnsupportedOperationException {
+    public CompletableFuture<Set<String>> findServers() throws UnsupportedOperationException {
         return plugin.findServers(requestTimeout);
     }
 
@@ -333,5 +375,31 @@ public final class PlaceholderAPI {
      */
     public long getCacheExpiry() {
         return cacheExpiry;
+    }
+
+    /**
+     * Set the number of times to retry formatting placeholders if the request times out
+     * <p>
+     * The default value is 3
+     *
+     * @param retryTimes The number of times to retry formatting placeholders if the request times out
+     * @throws IllegalArgumentException If the number of retries is negative
+     * @since 1.6
+     */
+    public void setRetryTimes(int retryTimes) {
+        if (retryTimes < 0) {
+            throw new IllegalArgumentException("Retry times cannot be negative");
+        }
+        this.retryTimes = retryTimes;
+    }
+
+    /**
+     * Returns the number of times to retry formatting placeholders if the request times out
+     *
+     * @return The number of times to retry formatting placeholders if the request times out
+     * @since 1.6
+     */
+    public int getRetryTimes() {
+        return retryTimes;
     }
 }

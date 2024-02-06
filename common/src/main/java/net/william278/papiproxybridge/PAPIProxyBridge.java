@@ -27,9 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -63,12 +61,22 @@ public interface PAPIProxyBridge {
         return "component";
     }
 
+    default String getLoadMessage() {
+        return "PAPIProxyBridge (" + getServerType() + " " + getVersion() + ") has been enabled!";
+    }
+
+    String getServerType();
+
+    default String getVersion() {
+        return getClass().getPackage().getImplementationVersion();
+    }
+
     @NotNull
-    List<? extends OnlineUser> getOnlineUsers();
+    Collection<? extends OnlineUser> getOnlineUsers();
 
-    Optional<OnlineUser> findPlayer(@NotNull UUID uuid);
+    Optional<? extends OnlineUser> findPlayer(@NotNull UUID uuid);
 
-    Optional<OnlineUser> findPlayer(@NotNull String username);
+    Optional<? extends OnlineUser> findPlayer(@NotNull String username);
 
     default void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
         if (!channel.equals(plugin.getChannel()) && !channel.equals(getComponentChannel())) {
@@ -96,7 +104,7 @@ public interface PAPIProxyBridge {
 
     CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson, long requestTimeout);
 
-    CompletableFuture<List<String>> findServers(long requestTimeout);
+    CompletableFuture<Set<String>> findServers(long requestTimeout);
 
     void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions);
 

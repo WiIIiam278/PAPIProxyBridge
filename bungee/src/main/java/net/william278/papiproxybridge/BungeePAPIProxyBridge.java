@@ -19,7 +19,6 @@
 
 package net.william278.papiproxybridge;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -28,24 +27,25 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.user.BungeeUser;
-import net.william278.papiproxybridge.user.OnlineUser;
 import org.bstats.bungeecord.Metrics;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
+@SuppressWarnings("unused")
 public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridge, Listener {
 
-    private final ConcurrentMap<UUID, CompletableFuture<String>> requests = Maps.newConcurrentMap();
-    private final List<BungeeUser> users = Lists.newCopyOnWriteArrayList();
+    private ConcurrentMap<UUID, CompletableFuture<String>> requests;
+    private Map<UUID, BungeeUser> users;
 
     @Override
     public void onEnable() {
+        requests = Maps.newConcurrentMap();
+        users = Maps.newConcurrentMap();
+
         // Register the plugin message channel
         getProxy().registerChannel(getChannel());
         getProxy().registerChannel(getComponentChannel());
@@ -59,7 +59,7 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
         // Metrics
         new Metrics(this, 17879);
 
-        getLogger().info("PAPIProxyBridge (" + getProxy().getName() + ") has been enabled!");
+        getLogger().info(getLoadMessage());
     }
 
     @Override
@@ -79,13 +79,13 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     @EventHandler
     public void onJoin(PostLoginEvent event) {
         final BungeeUser user = BungeeUser.adapt(event.getPlayer());
-        users.add(user);
+        users.put(user.getUniqueId(), user);
     }
 
     @EventHandler
     public void onQuit(PostLoginEvent event) {
         final BungeeUser user = BungeeUser.adapt(event.getPlayer());
-        users.remove(user);
+        users.remove(user.getUniqueId());
     }
 
     @Override
@@ -95,19 +95,27 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     }
 
     @Override
+    public String getServerType() {
+        return "BungeeCord";
+    }
+
+    @Override
     @NotNull
-    public List<BungeeUser> getOnlineUsers() {
-        return users;
+    public Collection<BungeeUser> getOnlineUsers() {
+        return users.values();
     }
 
     @Override
-    public Optional<OnlineUser> findPlayer(@NotNull UUID uuid) {
-        return users.stream().filter(user -> user.getUniqueId().equals(uuid)).map(u -> (OnlineUser) u).findFirst();
+    public Optional<BungeeUser> findPlayer(@NotNull UUID uuid) {
+        return Optional.ofNullable(users.get(uuid));
     }
 
     @Override
-    public Optional<OnlineUser> findPlayer(@NotNull String username) {
-        return users.stream().filter(user -> user.getUsername().equals(username)).map(u -> (OnlineUser) u).findFirst();
+    public Optional<BungeeUser> findPlayer(@NotNull String username) {
+        return users.values()
+                .stream()
+                .filter(user -> user.getUsername().equals(username))
+                .findFirst();
     }
 
     @Override
