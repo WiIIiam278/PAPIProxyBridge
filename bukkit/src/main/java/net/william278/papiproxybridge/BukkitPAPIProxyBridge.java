@@ -33,24 +33,22 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
-import com.tcoded.folialib.FoliaLib;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, PluginMessageListener, Listener {
     private Formatter formatter;
-    private FoliaLib foliaLib;
     private final List<BukkitUser> users = Lists.newCopyOnWriteArrayList();
 
     @Override
     public void onLoad() {
         // Initialize the formatter
         formatter = new Formatter();
-        FoliaLib foliaLib = new FoliaLib(this);
     }
 
     @Override
@@ -81,6 +79,15 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         // Unregister the plugin message channel
         getServer().getMessenger().unregisterOutgoingPluginChannel(this);
         getServer().getMessenger().unregisterIncomingPluginChannel(this);
+    }
+
+    private static boolean isFolia() {
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     private void loadOnlinePlayers() {
@@ -131,14 +138,14 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @NotNull
     public final CompletableFuture<String> formatPlaceholders(@NotNull UUID formatFor, @NotNull BukkitUser requester, @NotNull String text) {
         final CompletableFuture<String> future = new CompletableFuture<>();
-        if (!foliaLib.isFolia()) {
+        if (!isFolia()) {
             getServer().getScheduler().runTaskLater(this,
                     () -> future.complete(formatter.formatPlaceholders(formatFor, requester.getPlayer(), text)),
                     requester.justSwitchedServer() ? 2 : 1);
         } else {
-            foliaLib.getImpl().runLater(
-                    () -> future.complete(formatter.formatPlaceholders(formatFor, requester.getPlayer(), text)),
-                    requester.justSwitchedServer() ? 2 : 1);
+            getServer().getAsyncScheduler().runDelayed(this,
+                    task -> future.complete(formatter.formatPlaceholders(formatFor, requester.getPlayer(), text)),
+                    requester.justSwitchedServer() ? 100 : 50, TimeUnit.MILLISECONDS);
         }
         return future;
     }
@@ -148,13 +155,14 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         final BukkitUser user = BukkitUser.adapt(event.getPlayer());
         user.setJustSwitchedServer(true);
         users.add(user);
-        if (!foliaLib.isFolia()) {
+        if (!isFolia()) {
             getServer().getScheduler().runTaskLater(this,
                     () -> user.setJustSwitchedServer(false),
                     10);
         } else {
-            foliaLib.getImpl().runLater(() -> user.setJustSwitchedServer(false),
-                    10);
+            getServer().getAsyncScheduler().runDelayed(this,
+                    task -> user.setJustSwitchedServer(false),
+                    500, TimeUnit.MILLISECONDS);
         }
     }
 
