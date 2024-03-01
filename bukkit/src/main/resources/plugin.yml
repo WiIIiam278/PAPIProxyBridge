@@ -4,5 +4,6 @@ description: '${description}'
 author: 'William278'
 website: 'https://william278.net/'
 main: 'net.william278.papiproxybridge.BukkitPAPIProxyBridge'
+folia-supported: true
 api-version: 1.16
 depend: [ PlaceholderAPI ]
