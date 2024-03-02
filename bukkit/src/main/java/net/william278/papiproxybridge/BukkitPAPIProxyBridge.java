@@ -20,6 +20,7 @@
 package net.william278.papiproxybridge;
 
 import com.google.common.collect.Lists;
+import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.papi.Formatter;
 import net.william278.papiproxybridge.user.BukkitUser;
@@ -128,7 +129,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @NotNull
     public final CompletableFuture<String> formatPlaceholders(@NotNull UUID formatFor, @NotNull BukkitUser requester, @NotNull String text) {
         final CompletableFuture<String> future = new CompletableFuture<>();
-        getServer().getScheduler().runTaskLater(this,
+        EntityScheduler.get(this, requester.getPlayer()).runLater(
                 () -> future.complete(formatter.formatPlaceholders(formatFor, requester.getPlayer(), text)),
                 requester.justSwitchedServer() ? 2 : 1);
         return future;
@@ -139,7 +140,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         final BukkitUser user = BukkitUser.adapt(event.getPlayer());
         user.setJustSwitchedServer(true);
         users.add(user);
-        getServer().getScheduler().runTaskLater(this,
+        EntityScheduler.get(this, user.getPlayer()).runLater(
                 () -> user.setJustSwitchedServer(false),
                 10);
     }
