@@ -5,4 +5,5 @@ author: 'William278'
 website: 'https://william278.net/'
 main: 'net.william278.papiproxybridge.BukkitPAPIProxyBridge'
 api-version: 1.16
+folia-supported: true
 depend: [ PlaceholderAPI ]
