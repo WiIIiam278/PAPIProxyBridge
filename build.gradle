@@ -68,8 +68,7 @@ allprojects {
 
     jar {
         manifest {
-            attributes 'Implementation-Title': 'Gradle Quickstart',
-                    'Implementation-Version': version
+            attributes 'Implementation-Version': version
         }
     }
 }
