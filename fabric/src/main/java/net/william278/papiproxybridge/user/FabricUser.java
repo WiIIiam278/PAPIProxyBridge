@@ -19,28 +19,26 @@
 
 package net.william278.papiproxybridge.user;
 
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.impl.networking.payload.PayloadHelper;
-import net.fabricmc.fabric.impl.networking.payload.ResolvablePayload;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.Language;
 import net.william278.papiproxybridge.FabricPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
+import net.william278.papiproxybridge.payload.ComponentPayload;
+import net.william278.papiproxybridge.payload.LiteralPayload;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
-@SuppressWarnings("apiUnstable")
 public class FabricUser implements OnlineUser {
 
     private final ServerPlayerEntity player;
@@ -68,15 +66,16 @@ public class FabricUser implements OnlineUser {
 
     @Override
     public void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBytes(message);
-        ResolvablePayload resolvablePayload = PayloadHelper.readCustom(new Identifier(channel), buf, 100000, false);
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(resolvablePayload);
+        final CustomPayload payload = channel.equals(ComponentPayload.getChannel()) ?
+                new ComponentPayload(message) :
+                new LiteralPayload(message);
+        final Packet<?> packet = new CustomPayloadS2CPacket(payload);
         player.networkHandler.sendPacket(packet);
     }
 
+
     private Component getComponent(Text text) {
-        return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonTree(text).toString());
+        return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonString(text, new DynamicRegistryManager.ImmutableImpl(List.of())));
     }
 
     private Component translateKeys(TranslatableComponent translatable) {

@@ -19,14 +19,12 @@
 
 package net.william278.papiproxybridge;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.*;
 import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.ProxyUser;
 import net.william278.papiproxybridge.user.Request;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -34,7 +32,6 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
-
 
     @NotNull
     ConcurrentMap<UUID, CompletableFuture<String>> getRequests();
@@ -44,7 +41,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
         getRequests().putIfAbsent(request.getUuid(), future);
-        future.orTimeout(requester.justSwitchedServer() ? requestTimeout * 2L : requestTimeout, TimeUnit.MILLISECONDS).exceptionally(throwable -> {
+        future.orTimeout(requester.justSwitchedServer() ? requestTimeout * 3L : requestTimeout, TimeUnit.MILLISECONDS).exceptionally(throwable -> {
             getRequests().remove(request.getUuid());
             return text;
         });
@@ -52,13 +49,13 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
         return future;
     }
 
-    default CompletableFuture<List<String>> findServers(long requestTimeout) {
-        final CompletableFuture<List<String>> future = new CompletableFuture<>();
+    default CompletableFuture<Set<String>> findServers(long requestTimeout) {
+        final CompletableFuture<Set<String>> future = new CompletableFuture<>();
         final Multimap<String, CompletableFuture<Boolean>> serverMap = getOnlineUsers().stream()
                 .filter(user -> user instanceof ProxyUser)
                 .map(user -> (ProxyUser) user)
                 .filter(OnlineUser::isConnected)
-                .collect(() -> Multimaps.newListMultimap(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new),
+                .collect(() -> Multimaps.newSetMultimap(Maps.newConcurrentMap(), Sets::newConcurrentHashSet),
                         (map, user) -> map.put(user.getServerName(), createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId(), false, requestTimeout)
                                 .thenApply(message -> message.equals(HANDSHAKE_RESPONSE))),
                         Multimap::putAll);
@@ -69,7 +66,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
                             .filter(entry -> entry.getValue().stream().anyMatch(CompletableFuture::join))
                             .map(Map.Entry::getKey)
                             .collect(Collectors.toSet());
-                    future.complete(List.copyOf(servers));
+                    future.complete(Set.copyOf(servers));
                 });
 
         return future;
