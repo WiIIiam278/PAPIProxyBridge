@@ -19,17 +19,17 @@
 
 package net.william278.papiproxybridge;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
-import io.netty.buffer.ByteBuf;
 import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
+import net.william278.papiproxybridge.payload.ComponentPayload;
+import net.william278.papiproxybridge.payload.LiteralPayload;
 import net.william278.papiproxybridge.user.FabricUser;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
@@ -43,8 +43,6 @@ import java.util.logging.Level;
 public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAPIProxyBridge {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("FabricPAPIProxyBridge");
-    public static final Identifier FORMAT = new Identifier("papiproxybridge", "format");
-    public static final Identifier COMPONENT = new Identifier("papiproxybridge", "component");
     private Map<UUID, FabricUser> fabricUsers;
 
     @Override
@@ -67,18 +65,13 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
     }
 
     private void handlePackets() {
-        ServerPlayNetworking.registerGlobalReceiver(FORMAT, (server, player, handler, buf, responseSender) ->
-                this.handlePluginMessage(this, FORMAT.toString(), getWrittenBytes(buf)));
-        ServerPlayNetworking.registerGlobalReceiver(COMPONENT, (server, player, handler, buf, responseSender) ->
-                this.handlePluginMessage(this, COMPONENT.toString(), getWrittenBytes(buf)));
-    }
+        PayloadTypeRegistry.playC2S().register(LiteralPayload.ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(LiteralPayload.ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ComponentPayload.ID, ComponentPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ComponentPayload.ID, ComponentPayload.CODEC);
 
-    @VisibleForTesting
-    public byte[] getWrittenBytes(ByteBuf buf) {
-        int i = buf.writerIndex();
-        byte[] bs = new byte[i];
-        buf.getBytes(0, bs);
-        return bs;
+        ServerPlayNetworking.registerGlobalReceiver(LiteralPayload.ID, (payload, context) -> this.handlePluginMessage(this, LiteralPayload.getChannel(), payload.getBytes()));
+        ServerPlayNetworking.registerGlobalReceiver(ComponentPayload.ID, (payload, context) -> this.handlePluginMessage(this, ComponentPayload.getChannel(), payload.getBytes()));
     }
 
     @Override

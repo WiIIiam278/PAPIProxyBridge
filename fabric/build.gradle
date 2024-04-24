@@ -5,6 +5,13 @@ plugins {
 apply plugin: 'fabric-loom'
 loom.serverOnlyMinecraftJar()
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+        sourceCompatibility = JavaLanguageVersion.of(21)
+    }
+}
+
 repositories {
     mavenCentral()
     maven { url 'https://maven.nucleoid.xyz' } // PlaceholderAPI
