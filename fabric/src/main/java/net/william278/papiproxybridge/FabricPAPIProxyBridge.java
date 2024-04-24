@@ -26,6 +26,7 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.text.Text;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.payload.ComponentPayload;
@@ -62,6 +63,13 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
             fabricUsers.put(user.getUniqueId(), user);
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> fabricUsers.remove(handler.player.getUuid()));
+    }
+
+    @Override
+    public String getVersion() {
+        return FabricLoader.getInstance().getModContainer("papiproxybridge")
+                .map(container -> container.getMetadata().getVersion().getFriendlyString())
+                .orElse("Unknown");
     }
 
     private void handlePackets() {
