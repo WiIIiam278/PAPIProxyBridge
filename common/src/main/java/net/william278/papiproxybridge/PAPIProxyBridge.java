@@ -104,7 +104,12 @@ public interface PAPIProxyBridge {
 
     CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson, long requestTimeout);
 
-    CompletableFuture<Set<String>> findServers(long requestTimeout);
+    @Deprecated(since = "1.6", forRemoval = true)
+    default CompletableFuture<List<String>> findServers(long requestTimeout) {
+        return getServers(requestTimeout).thenApply(ArrayList::new);
+    }
+
+    CompletableFuture<Set<String>> getServers(long requestTimeout);
 
     void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions);
 

@@ -113,7 +113,7 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
     }
 
     @Override
-    public CompletableFuture<Set<String>> findServers(long requestTimeout) {
+    public CompletableFuture<Set<String>> getServers(long requestTimeout) {
         throw new UnsupportedOperationException("Cannot fetch the list of servers from a backend Fabric server.");
     }
 
