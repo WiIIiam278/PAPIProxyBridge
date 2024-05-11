@@ -49,7 +49,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
         return future;
     }
 
-    default CompletableFuture<Set<String>> findServers(long requestTimeout) {
+    default CompletableFuture<Set<String>> getServers(long requestTimeout) {
         final CompletableFuture<Set<String>> future = new CompletableFuture<>();
         final Multimap<String, CompletableFuture<Boolean>> serverMap = getOnlineUsers().stream()
                 .filter(user -> user instanceof ProxyUser)

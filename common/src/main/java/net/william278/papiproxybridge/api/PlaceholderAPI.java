@@ -29,6 +29,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -317,10 +318,24 @@ public final class PlaceholderAPI {
      * @return A future that will supply the list of backend servers
      * @throws UnsupportedOperationException If this method is called from a backend (Bukkit, Fabric) server
      * @apiNote This method can only be used from the proxy; it will throw an exception if called from a backend server
+     * @deprecated Use {@link #getServers()} instead
      * @since 1.3
      */
-    public CompletableFuture<Set<String>> findServers() throws UnsupportedOperationException {
+    @Deprecated(since = "1.6", forRemoval = true)
+    public CompletableFuture<List<String>> findServers() throws UnsupportedOperationException {
         return plugin.findServers(requestTimeout);
+    }
+
+    /**
+     * Fetch the list of backend servers with PAPIProxyBridge installed
+     *
+     * @return A future that will supply the list of backend servers
+     * @throws UnsupportedOperationException If this method is called from a backend (Bukkit, Fabric) server
+     * @apiNote This method can only be used from the proxy; it will throw an exception if called from a backend server
+     * @since 1.6
+     */
+    public CompletableFuture<Set<String>> getServers() throws UnsupportedOperationException {
+        return plugin.getServers(requestTimeout);
     }
 
     /**
