@@ -25,6 +25,47 @@ jobs:
         env:
           RELEASES_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           RELEASES_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+      - name: 'Publish to Modrinth & Hangar 🚰'
+        uses: WiIIiam278/mc-publish@hangar
+        with:
+          modrinth-id: bEIUEGTX
+          modrinth-featured: true
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-version-type: release
+          hangar-id: William278/PAPIProxyBridge
+          hangar-token: ${{ secrets.HANGAR_API_KEY }}
+          hangar-version-type: Release
+          files: target/PAPIProxyBridge-Plugin-*.jar
+          name: PAPIProxyBridge v${{ github.event.release.tag_name }}
+          version: ${{ github.event.release.tag_name }}
+          changelog: ${{ github.event.release.body }}
+          loaders: |
+            bungeecord
+            fabric
+            folia
+            paper
+            spigot
+            velocity
+          dependencies: |
+            placeholderapi | suggests | *
+          game-versions: |
+            1.17.1
+            1.18
+            1.18.1
+            1.18.2
+            1.19
+            1.19.1
+            1.19.2
+            1.19.3
+            1.19.4
+            1.20
+            1.20.1
+            1.20.2
+            1.20.3
+            1.20.4
+            1.20.5
+            1.20.6
+          java: 17
       - name: Upload GitHub Artifact
         uses: actions/upload-artifact@v2
         with:
