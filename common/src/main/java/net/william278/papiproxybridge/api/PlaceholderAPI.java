@@ -321,6 +321,7 @@ public final class PlaceholderAPI {
      * @deprecated Use {@link #getServers()} instead
      * @since 1.3
      */
+    @SuppressWarnings("removal")
     @Deprecated(since = "1.6", forRemoval = true)
     public CompletableFuture<List<String>> findServers() throws UnsupportedOperationException {
         return plugin.findServers(requestTimeout);

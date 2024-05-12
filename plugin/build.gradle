@@ -6,7 +6,5 @@ dependencies {
 }
 
 shadowJar {
-    relocate 'org.jetbrains', 'net.william278.papiproxybridge.libraries'
-    relocate 'org.intellij', 'net.william278.papiproxybridge.libraries'
     relocate 'net.jodah', 'net.william278.papiproxybridge.libraries'
 }
