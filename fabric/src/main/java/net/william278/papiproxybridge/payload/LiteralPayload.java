@@ -27,7 +27,7 @@ import net.minecraft.util.Identifier;
 
 public final class LiteralPayload extends TemplatePayload {
 
-    public static final Id<LiteralPayload> ID = new Id<>(new Identifier("papiproxybridge", "format"));
+    public static final Id<LiteralPayload> ID = new Id<>(Identifier.of("papiproxybridge", "format"));
     public static final PacketCodec<RegistryByteBuf, LiteralPayload> CODEC = PacketCodec.of((value, buf) -> writeBytes(buf, value.bytes), LiteralPayload::new);
 
     public LiteralPayload(byte[] bytes) {
