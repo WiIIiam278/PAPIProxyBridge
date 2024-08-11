@@ -28,10 +28,7 @@ import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
@@ -55,6 +52,8 @@ import java.util.logging.Level;
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
     private static PAPIProxyBridge plugin;
+    private final static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(15);
+    private final static String PLACEHOLDER_DELIMITER = "%%%-%%%";
     private final ConcurrentMap<UUID, ExpiringMap<String, String>> cache;
     private final ConcurrentMap<UUID, ExpiringMap<String, Component>> componentCache;
     private long requestTimeout = 1000;
@@ -142,7 +141,7 @@ public final class PlaceholderAPI {
                     return formatted;
                 })
                 .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
-                .exceptionally(throwable -> {
+                .exceptionallyAsync(throwable -> {
                     if (!requester.isConnected()) {
                         return text;
                     }
@@ -161,7 +160,7 @@ public final class PlaceholderAPI {
                         plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
                     }
                     return text;
-                });
+                }, EXECUTOR_SERVICE);
     }
 
     /**
@@ -244,7 +243,7 @@ public final class PlaceholderAPI {
                     return deserialized;
                 })
                 .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
-                .exceptionally(throwable -> {
+                .exceptionallyAsync(throwable -> {
                     if (!requester.isConnected()) {
                         return Component.text(text);
                     }
@@ -263,7 +262,7 @@ public final class PlaceholderAPI {
                         plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
                     }
                     return Component.text(text);
-                });
+                }, EXECUTOR_SERVICE);
     }
 
     /**

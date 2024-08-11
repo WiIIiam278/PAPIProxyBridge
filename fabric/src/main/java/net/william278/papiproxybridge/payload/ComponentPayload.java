@@ -26,7 +26,7 @@ import net.minecraft.util.Identifier;
 
 public final class ComponentPayload extends TemplatePayload {
 
-    public static final CustomPayload.Id<ComponentPayload> ID = new CustomPayload.Id<>(new Identifier("papiproxybridge", "component"));
+    public static final CustomPayload.Id<ComponentPayload> ID = new CustomPayload.Id<>(Identifier.of("papiproxybridge", "component"));
     public static final PacketCodec<PacketByteBuf, ComponentPayload> CODEC = PacketCodec.of((value, buf) -> writeBytes(buf, value.bytes), ComponentPayload::new);
 
     public ComponentPayload(byte[] bytes) {
