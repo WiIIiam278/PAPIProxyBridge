@@ -109,7 +109,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Subscribe
     public void onServerChange(@NotNull ServerConnectedEvent event) {
         findPlayer(event.getPlayer().getUniqueId()).ifPresent(user -> {
-            final VelocityUser velocityUser = (VelocityUser) user;
+            final VelocityUser velocityUser = user;
             velocityUser.setJustSwitchedServer(true);
 
             server.getScheduler().buildTask(this,

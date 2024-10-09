@@ -45,6 +45,7 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
             getRequests().remove(request.getUuid());
             return text;
         });
+        future.thenRun(() -> getRequests().remove(request.getUuid()));
         requester.sendPluginMessage(this, request, wantsJson);
         return future;
     }

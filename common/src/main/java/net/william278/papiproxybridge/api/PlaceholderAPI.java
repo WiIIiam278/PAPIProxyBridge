@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 /**
@@ -53,7 +54,18 @@ import java.util.logging.Level;
 public final class PlaceholderAPI {
     private final static Set<PlaceholderAPI> instances = Collections.newSetFromMap(new WeakHashMap<>());
     private static PAPIProxyBridge plugin;
-    private final static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(5);
+    private final static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(5, new ThreadFactory() {
+
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+        @Override
+        public Thread newThread(@NotNull Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setName("PAPIProxyBridge-PlaceholderAPI-Thread-" + threadNumber.getAndIncrement());
+            thread.setDaemon(true);
+            return thread;
+        }
+    });
     private final static String PLACEHOLDER_DELIMITER = "%%%-%%%";
     private final ConcurrentMap<UUID, ExpiringMap<String, String>> cache;
     private final ConcurrentMap<UUID, ExpiringMap<String, Component>> componentCache;
@@ -116,6 +128,12 @@ public final class PlaceholderAPI {
             instance.cache.remove(player);
             instance.componentCache.remove(player);
         });
+        plugin.log(Level.ALL,"Cleared cache for player " + player);
+        //print current cache size (how many maps)
+        plugin.log(Level.ALL,"Cache size: " + instances.stream().map(instance -> instance.cache.size()).reduce(0, Integer::sum));
+        plugin.log(Level.ALL,"Component cache size: " + instances.stream().map(instance -> instance.componentCache.size()).reduce(0, Integer::sum));
+        plugin.log(Level.ALL,"Total cache size: " + instances.stream().map(instance -> instance.cache.values().size()).reduce(0, Integer::sum));
+        plugin.log(Level.ALL,"Total component cache: " + instances.stream().map(instance -> instance.componentCache.values().size()).reduce(0, Integer::sum));
     }
 
     /**
