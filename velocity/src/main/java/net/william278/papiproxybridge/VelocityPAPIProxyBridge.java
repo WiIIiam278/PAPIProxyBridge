@@ -126,6 +126,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         velocityUsers.remove(event.getPlayer().getUniqueId());
+        PlaceholderAPI.clearCache(event.getPlayer().getUniqueId());
     }
 
     @Override

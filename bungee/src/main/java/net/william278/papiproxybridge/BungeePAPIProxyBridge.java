@@ -86,6 +86,7 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     public void onQuit(PostLoginEvent event) {
         final BungeeUser user = BungeeUser.adapt(event.getPlayer());
         users.remove(user.getUniqueId());
+        PlaceholderAPI.clearCache(event.getPlayer().getUniqueId());
     }
 
     @Override

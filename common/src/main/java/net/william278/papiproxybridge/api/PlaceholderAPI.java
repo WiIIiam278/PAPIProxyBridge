@@ -51,8 +51,9 @@ import java.util.logging.Level;
  */
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
+    private final static Set<PlaceholderAPI> instances = Collections.newSetFromMap(new WeakHashMap<>());
     private static PAPIProxyBridge plugin;
-    private final static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(15);
+    private final static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(5);
     private final static String PLACEHOLDER_DELIMITER = "%%%-%%%";
     private final ConcurrentMap<UUID, ExpiringMap<String, String>> cache;
     private final ConcurrentMap<UUID, ExpiringMap<String, Component>> componentCache;
@@ -94,7 +95,9 @@ public final class PlaceholderAPI {
      */
     @NotNull
     public static PlaceholderAPI createInstance() {
-        return new PlaceholderAPI();
+        final PlaceholderAPI instance = new PlaceholderAPI();
+        instances.add(instance);
+        return instance;
     }
 
     /**
@@ -105,6 +108,14 @@ public final class PlaceholderAPI {
     @ApiStatus.Internal
     public static void register(@NotNull PAPIProxyBridge plugin) {
         PlaceholderAPI.plugin = plugin;
+    }
+
+    @ApiStatus.Internal
+    public static void clearCache(@NotNull UUID player) {
+        instances.forEach(instance -> {
+            instance.cache.remove(player);
+            instance.componentCache.remove(player);
+        });
     }
 
     /**
