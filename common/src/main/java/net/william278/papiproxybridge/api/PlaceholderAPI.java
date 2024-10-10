@@ -177,7 +177,7 @@ public final class PlaceholderAPI {
                     if (times > 0) {
                         try {
                             return formatPlaceholders(text, requester, formatFor, times - 1).get();
-                        } catch (InterruptedException | ExecutionException e) {
+                        } catch (Throwable e) {
                             plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), e);
                             return text;
                         }

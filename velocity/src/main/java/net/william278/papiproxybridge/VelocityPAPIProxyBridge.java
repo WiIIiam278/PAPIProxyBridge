@@ -132,6 +132,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Override
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions) {
         if (exceptions.length > 0) {
+            logger.info("Error: {}", message);
             logger.error(message, exceptions[0]);
         } else {
             logger.info(message);
