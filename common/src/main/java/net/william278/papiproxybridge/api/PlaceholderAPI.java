@@ -54,18 +54,7 @@ import java.util.logging.Level;
 public final class PlaceholderAPI {
     private final static Set<PlaceholderAPI> instances = Collections.newSetFromMap(new WeakHashMap<>());
     private static PAPIProxyBridge plugin;
-    private final static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(5, new ThreadFactory() {
-
-        private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-        @Override
-        public Thread newThread(@NotNull Runnable r) {
-            Thread thread = new Thread(r);
-            thread.setName("PAPIProxyBridge-PlaceholderAPI-Thread-" + threadNumber.getAndIncrement());
-            thread.setDaemon(true);
-            return thread;
-        }
-    });
+    private final static ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(1, r -> new Thread(r, "PAPIProxyBridge-PlaceholderAPI-ScheduledThread"));
     private final static String PLACEHOLDER_DELIMITER = "%%%-%%%";
     private final ConcurrentMap<UUID, ExpiringMap<String, String>> cache;
     private final ConcurrentMap<UUID, ExpiringMap<String, Component>> componentCache;
@@ -128,12 +117,19 @@ public final class PlaceholderAPI {
             instance.cache.remove(player);
             instance.componentCache.remove(player);
         });
-        plugin.log(Level.ALL,"Cleared cache for player " + player);
+        plugin.log(Level.ALL, "Cleared cache for player " + player);
         //print current cache size (how many maps)
-        plugin.log(Level.ALL,"Cache size: " + instances.stream().map(instance -> instance.cache.size()).reduce(0, Integer::sum));
-        plugin.log(Level.ALL,"Component cache size: " + instances.stream().map(instance -> instance.componentCache.size()).reduce(0, Integer::sum));
-        plugin.log(Level.ALL,"Total cache size: " + instances.stream().map(instance -> instance.cache.values().size()).reduce(0, Integer::sum));
-        plugin.log(Level.ALL,"Total component cache: " + instances.stream().map(instance -> instance.componentCache.values().size()).reduce(0, Integer::sum));
+        plugin.log(Level.ALL, "Cache size: " + instances.stream().map(instance -> instance.cache.size()).reduce(0, Integer::sum));
+        plugin.log(Level.ALL, "Component cache size: " + instances.stream().map(instance -> instance.componentCache.size()).reduce(0, Integer::sum));
+        plugin.log(Level.ALL, "Total cache size: " + instances.stream().map(instance -> instance.cache.values().size()).reduce(0, Integer::sum));
+        plugin.log(Level.ALL, "Total component cache: " + instances.stream().map(instance -> instance.componentCache.values().size()).reduce(0, Integer::sum));
+    }
+
+
+    private static <T> CompletableFuture<T> orTimeoutAsync(CompletableFuture<T> future, long timeout, @NotNull TimeUnit unit) {
+        final CompletableFuture<T> timeoutFuture = new CompletableFuture<>();
+        SCHEDULER.schedule(() -> timeoutFuture.completeExceptionally(new TimeoutException("Timeout reached")), timeout, unit);
+        return CompletableFuture.anyOf(future, timeoutFuture).thenApply(o -> (T) o);
     }
 
     /**
@@ -161,35 +157,25 @@ public final class PlaceholderAPI {
         if (cacheExpiry > 0 && cache.containsKey(formatFor) && cache.get(formatFor).containsKey(text)) {
             return CompletableFuture.completedFuture(cache.get(formatFor).get(text));
         }
-        return plugin.createRequest(text, requester, formatFor, false, requestTimeout)
-                .thenApply(formatted -> {
-                    cache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
-                                    .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
-                                    .build())
-                            .put(text, formatted);
-                    return formatted;
-                })
-                .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
-                .exceptionallyAsync(throwable -> {
-                    if (!requester.isConnected()) {
-                        return text;
-                    }
-                    if (times > 0) {
-                        try {
-                            return formatPlaceholders(text, requester, formatFor, times - 1).get();
-                        } catch (Throwable e) {
-                            plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), e);
-                            return text;
-                        }
-                    }
-                    if (Arrays.stream(throwable.getSuppressed()).anyMatch(TimeoutException.class::isInstance)) {
-                        plugin.log(Level.WARNING, "Timed out formatting placeholders for " + requester.getUsername() +
-                                " timeout: " + requestTimeout + "ms");
-                    } else {
-                        plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
-                    }
-                    return text;
-                }, EXECUTOR_SERVICE);
+        final CompletableFuture<String> future = plugin.createRequest(text, requester, formatFor, false, requestTimeout);
+        return orTimeoutAsync(future, requestTimeout, TimeUnit.MILLISECONDS).thenApply(formatted -> {
+            cache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
+                            .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
+                            .build())
+                    .put(text, formatted);
+            return formatted;
+        }).exceptionally(throwable -> {
+            if (!requester.isConnected()) {
+                return text;
+            }
+            if (throwable instanceof CompletionException || Arrays.stream(throwable.getSuppressed()).anyMatch(TimeoutException.class::isInstance)) {
+                plugin.log(Level.SEVERE, "Timed out formatting placeholders for " + requester.getUsername() +
+                        " timeout: " + requestTimeout + "ms. Is PapiProxyBridge up-to-date and installed on all backend servers?");
+            } else {
+                plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
+            }
+            return text;
+        });
     }
 
     /**
@@ -262,36 +248,26 @@ public final class PlaceholderAPI {
         if (cacheExpiry > 0 && componentCache.containsKey(formatFor) && componentCache.get(formatFor).containsKey(text)) {
             return CompletableFuture.completedFuture(componentCache.get(formatFor).get(text));
         }
-        return plugin.createRequest(text, requester, formatFor, true, requestTimeout)
-                .thenApply(formatted -> {
-                    final Component deserialized = GsonComponentSerializer.gson().deserializeOr(formatted, Component.text(formatted));
-                    componentCache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
-                                    .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
-                                    .build())
-                            .put(text, deserialized);
-                    return deserialized;
-                })
-                .orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
-                .exceptionallyAsync(throwable -> {
-                    if (!requester.isConnected()) {
-                        return Component.text(text);
-                    }
-                    if (times > 0) {
-                        try {
-                            return formatComponentPlaceholders(text, requester, formatFor, times - 1).get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), e);
-                            return Component.text(text);
-                        }
-                    }
-                    if (Arrays.stream(throwable.getSuppressed()).anyMatch(TimeoutException.class::isInstance)) {
-                        plugin.log(Level.WARNING, "Timed out formatting placeholders for " + requester.getUsername() +
-                                " timeout: " + requestTimeout + "ms");
-                    } else {
-                        plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
-                    }
-                    return Component.text(text);
-                }, EXECUTOR_SERVICE);
+        final CompletableFuture<String> future = plugin.createRequest(text, requester, formatFor, true, requestTimeout);
+        return orTimeoutAsync(future, requestTimeout, TimeUnit.MILLISECONDS).thenApply(formatted -> {
+            final Component deserialized = GsonComponentSerializer.gson().deserializeOr(formatted, Component.text(formatted));
+            componentCache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
+                            .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
+                            .build())
+                    .put(text, deserialized);
+            return deserialized;
+        }).exceptionally(throwable -> {
+            if (!requester.isConnected()) {
+                return Component.text(text);
+            }
+            if (throwable instanceof CompletionException || Arrays.stream(throwable.getSuppressed()).anyMatch(TimeoutException.class::isInstance)) {
+                plugin.log(Level.SEVERE, "Timed out formatting placeholders for " + requester.getUsername() +
+                        " timeout: " + requestTimeout + "ms. Is PapiProxyBridge up-to-date and installed on all backend servers?");
+            } else {
+                plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
+            }
+            return Component.text(text);
+        });
     }
 
     /**
@@ -346,8 +322,8 @@ public final class PlaceholderAPI {
      * @return A future that will supply the list of backend servers
      * @throws UnsupportedOperationException If this method is called from a backend (Bukkit, Fabric) server
      * @apiNote This method can only be used from the proxy; it will throw an exception if called from a backend server
-     * @deprecated Use {@link #getServers()} instead
      * @since 1.3
+     * @deprecated Use {@link #getServers()} instead
      */
     @SuppressWarnings("removal")
     @Deprecated(since = "1.6", forRemoval = true)

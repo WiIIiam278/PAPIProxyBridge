@@ -135,7 +135,13 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
             logger.info("Error: {}", message);
             logger.error(message, exceptions[0]);
         } else {
-            logger.info(message);
+            if (level.equals(Level.SEVERE)) {
+                logger.error(message);
+            } else if (level.equals(Level.WARNING)) {
+                logger.warn(message);
+            } else {
+                logger.info(message);
+            }
         }
     }
 
