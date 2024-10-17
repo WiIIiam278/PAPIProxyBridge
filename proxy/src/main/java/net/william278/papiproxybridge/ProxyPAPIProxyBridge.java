@@ -41,6 +41,10 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
         getRequests().put(request.getUuid(), future);
+        future.exceptionallyAsync(throwable -> {
+            getRequests().remove(request.getUuid());
+            return text;
+        });
         requester.sendPluginMessage(this, request, wantsJson);
         return future;
     }

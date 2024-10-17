@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 /**
@@ -117,18 +116,16 @@ public final class PlaceholderAPI {
             instance.cache.remove(player);
             instance.componentCache.remove(player);
         });
-        plugin.log(Level.ALL, "Cleared cache for player " + player);
-        //print current cache size (how many maps)
-        plugin.log(Level.ALL, "Cache size: " + instances.stream().map(instance -> instance.cache.size()).reduce(0, Integer::sum));
-        plugin.log(Level.ALL, "Component cache size: " + instances.stream().map(instance -> instance.componentCache.size()).reduce(0, Integer::sum));
-        plugin.log(Level.ALL, "Total cache size: " + instances.stream().map(instance -> instance.cache.values().size()).reduce(0, Integer::sum));
-        plugin.log(Level.ALL, "Total component cache: " + instances.stream().map(instance -> instance.componentCache.values().size()).reduce(0, Integer::sum));
     }
 
 
     private static <T> CompletableFuture<T> orTimeoutAsync(CompletableFuture<T> future, long timeout, @NotNull TimeUnit unit) {
         final CompletableFuture<T> timeoutFuture = new CompletableFuture<>();
-        SCHEDULER.schedule(() -> timeoutFuture.completeExceptionally(new TimeoutException("Timeout reached")), timeout, unit);
+        SCHEDULER.schedule(() -> {
+            final TimeoutException timeoutException = new TimeoutException("Timeout reached");
+            timeoutFuture.completeExceptionally(timeoutException);
+            future.completeExceptionally(timeoutException);
+        }, timeout, unit);
         return CompletableFuture.anyOf(future, timeoutFuture).thenApply(o -> (T) o);
     }
 
