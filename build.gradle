@@ -3,7 +3,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id 'io.github.goooler.shadow' version "8.1.8"
     id 'org.cadixdev.licenser' version '0.6.1'
-    id 'org.ajoberstar.grgit' version '5.2.2'
+    id 'org.ajoberstar.grgit' version '5.3.0'
     id 'maven-publish'
     id 'java'
 }
