@@ -65,9 +65,7 @@ jobs:
             1.20.4
             1.20.5
             1.20.6
+            1.21
+            1.21.1
+            1.21.2
           java: 17
-      - name: Upload GitHub Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: Plugin Jar
-          path: target/PAPIProxyBridge-Plugin-*.jar
