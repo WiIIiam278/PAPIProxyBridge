@@ -40,8 +40,8 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
                                                     boolean wantsJson, long requestTimeout) {
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
-        getRequests().putIfAbsent(request.getUuid(), future);
-        future.orTimeout(requester.justSwitchedServer() ? requestTimeout * 3L : requestTimeout, TimeUnit.MILLISECONDS).exceptionally(throwable -> {
+        getRequests().put(request.getUuid(), future);
+        future.exceptionallyAsync(throwable -> {
             getRequests().remove(request.getUuid());
             return text;
         });

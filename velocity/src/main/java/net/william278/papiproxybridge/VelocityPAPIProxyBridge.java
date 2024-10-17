@@ -109,7 +109,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Subscribe
     public void onServerChange(@NotNull ServerConnectedEvent event) {
         findPlayer(event.getPlayer().getUniqueId()).ifPresent(user -> {
-            final VelocityUser velocityUser = (VelocityUser) user;
+            final VelocityUser velocityUser = user;
             velocityUser.setJustSwitchedServer(true);
 
             server.getScheduler().buildTask(this,
@@ -126,14 +126,22 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         velocityUsers.remove(event.getPlayer().getUniqueId());
+        PlaceholderAPI.clearCache(event.getPlayer().getUniqueId());
     }
 
     @Override
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions) {
         if (exceptions.length > 0) {
+            logger.info("Error: {}", message);
             logger.error(message, exceptions[0]);
         } else {
-            logger.info(message);
+            if (level.equals(Level.SEVERE)) {
+                logger.error(message);
+            } else if (level.equals(Level.WARNING)) {
+                logger.warn(message);
+            } else {
+                logger.info(message);
+            }
         }
     }
 
