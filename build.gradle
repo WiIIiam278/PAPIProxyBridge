@@ -59,8 +59,6 @@ allprojects {
     apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'java'
 
-    version = "$ext.plugin_version${versionMetadata()}"
-
     compileJava.options.encoding = 'UTF-8'
     compileJava.options.release.set 17
     javadoc.options.encoding = 'UTF-8'
