@@ -156,9 +156,9 @@ jobs:
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           modrinth-dependencies: |
             placeholderapi | suggests | *
-          hangar-id: William278/PAPIProxyBridge
-          hangar-token: ${{ secrets.HANGAR_API_KEY }}
-          hangar-version-type: Release
+#          hangar-id: William278/PAPIProxyBridge
+#          hangar-token: ${{ secrets.HANGAR_API_KEY }}
+#          hangar-version-type: Release
           files-primary: target/PAPIProxyBridge-Velocity-${{ github.event.release.tag_name }}.jar
           name: PAPIProxyBridge (Velocity) v${{ github.event.release.tag_name }}
           version: ${{ github.event.release.tag_name }}
