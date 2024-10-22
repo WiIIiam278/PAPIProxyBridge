@@ -45,7 +45,7 @@ jobs:
             bungeecord
           distro-descriptions: |
             Paper
-            Fabric 1.21.1
+            Fabric 1.21.2
             Velocity
             BungeeCord
           files: |
