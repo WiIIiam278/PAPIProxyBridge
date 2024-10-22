@@ -54,17 +54,17 @@ jobs:
           version: ${{ env.version_name }}
           changelog: ${{ github.event.head_commit.message }}
           distro-names: |
-            paper
+            spigot
             fabric-1.21.2
             velocity
             bungeecord
           distro-groups: |
-            paper
+            spigot
             fabric
             velocity
             bungeecord
           distro-descriptions: |
-            Paper
+            Spigot
             Fabric 1.21.2
             Velocity
             BungeeCord
