@@ -11,7 +11,6 @@ dependencies {
 
 shadowJar {
     relocate 'net.jodah', 'net.william278.papiproxybridge.libraries'
-
     relocate 'org.bstats', 'net.william278.papiproxybridge.libraries.bstats'
 
     minimize()

@@ -38,7 +38,7 @@ repositories {
 Then add the dependency:
 ```groovy
 dependencies {
-    implementation 'net.william278:papiproxybridge:1.4
+    implementation 'net.william278:papiproxybridge:1.7
 }
 ```
 

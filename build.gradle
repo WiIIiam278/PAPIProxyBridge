@@ -1,9 +1,10 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id 'io.github.goooler.shadow' version "8.1.8"
-    id 'org.cadixdev.licenser' version '0.6.1'
-    id 'org.ajoberstar.grgit' version '5.2.2'
+    id 'com.gradleup.shadow' version '8.3.3'
+    id 'org.cadixdev.licenser' version '0.6.1' apply false
+    id 'fabric-loom' version '1.8-SNAPSHOT' apply false
+    id 'org.ajoberstar.grgit' version '5.3.0'
     id 'maven-publish'
     id 'java'
 }
@@ -22,8 +23,39 @@ ext {
     set 'fabric_api_version', fabric_version.toString()
 }
 
+publishing {
+    repositories {
+        if (System.getenv("RELEASES_MAVEN_USERNAME") != null) {
+            maven {
+                name = "william278-releases"
+                url = "https://repo.william278.net/releases"
+                credentials {
+                    username = System.getenv("RELEASES_MAVEN_USERNAME")
+                    password = System.getenv("RELEASES_MAVEN_PASSWORD")
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
+        }
+        if (System.getenv("SNAPSHOTS_MAVEN_USERNAME") != null) {
+            maven {
+                name = "william278-snapshots"
+                url = "https://repo.william278.net/snapshots"
+                credentials {
+                    username = System.getenv("SNAPSHOTS_MAVEN_USERNAME")
+                    password = System.getenv("SNAPSHOTS_MAVEN_PASSWORD")
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
+        }
+    }
+}
+
 allprojects {
-    apply plugin: 'io.github.goooler.shadow'
+    apply plugin: 'com.gradleup.shadow'
     apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'java'
 
@@ -74,8 +106,21 @@ allprojects {
 }
 
 subprojects {
+    if (['fabric'].contains(project.name)) {
+        apply plugin: 'fabric-loom'
+    }
+
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
+
+    jar {
+        from '../LICENSE'
+    }
+
+    shadowJar {
+        destinationDirectory.set(file("$rootDir/target"))
+        archiveClassifier.set('')
+    }
 
     if (['common'].contains(project.name)) {
         java {
@@ -92,57 +137,32 @@ subprojects {
         jar.dependsOn(sourcesJar, javadocJar)
 
         publishing {
-            repositories {
-                if (System.getenv("RELEASES_MAVEN_USERNAME") != null) {
-                    maven {
-                        name = "william278-releases"
-                        url = "https://repo.william278.net/releases"
-                        credentials {
-                            username = System.getenv("RELEASES_MAVEN_USERNAME")
-                            password = System.getenv("RELEASES_MAVEN_PASSWORD")
-                        }
-                        authentication {
-                            basic(BasicAuthentication)
-                        }
-                    }
-                }
-                if (System.getenv("SNAPSHOTS_MAVEN_USERNAME") != null) {
-                    maven {
-                        name = "william278-snapshots"
-                        url = "https://repo.william278.net/snapshots"
-                        credentials {
-                            username = System.getenv("SNAPSHOTS_MAVEN_USERNAME")
-                            password = System.getenv("SNAPSHOTS_MAVEN_PASSWORD")
-                        }
-                        authentication {
-                            basic(BasicAuthentication)
-                        }
-                    }
-                }
-
-                publications {
-                    mavenJava(MavenPublication) {
-                        groupId = 'net.william278'
-                        artifactId = 'papiproxybridge'
-                        version = "$rootProject.version"
-                        artifact jar
-                        artifact javadocJar
-                        artifact sourcesJar
-                    }
+            publications {
+                mavenJava(MavenPublication) {
+                    groupId = 'net.william278'
+                    artifactId = 'papiproxybridge'
+                    version = "$rootProject.version"
+                    artifact jar
+                    artifact javadocJar
+                    artifact sourcesJar
                 }
             }
         }
     }
 
-    if (['bukkit', 'bungee', 'velocity', 'plugin'].contains(project.name)) {
+    if (['bukkit', 'bungee', 'velocity', 'fabric'].contains(project.name)) {
+        if (['fabric'].contains(project.name)) {
+            version += "+mc.${minecraft_version}"
+        }
+
         shadowJar {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')
         }
-
-        jar.dependsOn shadowJar
-        clean.delete "$rootDir/target"
     }
+
+    jar.dependsOn(shadowJar)
+    clean.delete "$rootDir/target"
 }
 
 logger.lifecycle("Building PAPIProxyBridge ${version} by William278")

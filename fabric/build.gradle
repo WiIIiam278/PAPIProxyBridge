@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.6-SNAPSHOT'
+    id 'fabric-loom' version '1.8-SNAPSHOT'
 }
 
 apply plugin: 'fabric-loom'
@@ -20,19 +20,21 @@ repositories {
 dependencies {
     minecraft "com.mojang:minecraft:$fabric_minecraft_version"
     mappings "net.fabricmc:yarn:$fabric_yarn_mappings:v2"
-
-    modCompileOnly "net.fabricmc:fabric-loader:$fabric_loader_version"
-    modCompileOnly "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
-    modCompileOnly "eu.pb4:placeholder-api:2.3.0+"
+    modImplementation "net.fabricmc:fabric-loader:$fabric_loader_version"
 
     modImplementation include("net.kyori:adventure-api:4.17.0")
 
+    modCompileOnly "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
+    modCompileOnly "eu.pb4:placeholder-api:2.3.0+"
+
     compileOnly "net.kyori:adventure-text-serializer-gson:4.17.0"
+
     shadow project(path: ":common")
 }
 
 shadowJar {
     configurations = [project.configurations.shadow]
+    destinationDirectory.set(file("$projectDir/build/libs"))
 
     exclude('net.fabricmc:.*')
     exclude('net.kyori:.*')
