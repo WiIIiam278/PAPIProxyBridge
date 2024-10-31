@@ -55,7 +55,7 @@ jobs:
           changelog: ${{ github.event.head_commit.message }}
           distro-names: |
             spigot
-            fabric-1.21.2
+            fabric-1.21.3
             velocity
             bungeecord
           distro-groups: |
@@ -65,12 +65,12 @@ jobs:
             bungeecord
           distro-descriptions: |
             Spigot
-            Fabric 1.21.2
+            Fabric 1.21.3
             Velocity
             BungeeCord
           files: |
             target/PAPIProxyBridge-Bukkit-${{ env.version_name }}.jar
-            target/PAPIProxyBridge-Fabric-${{ env.version_name }}+mc.1.21.2.jar
+            target/PAPIProxyBridge-Fabric-${{ env.version_name }}+mc.1.21.3.jar
             target/PAPIProxyBridge-Velocity-${{ env.version_name }}.jar
             target/PAPIProxyBridge-Bungee-${{ env.version_name }}.jar
       - name: 'Spigot: Publish to Modrinth'
@@ -110,7 +110,7 @@ jobs:
             1.20.6
             1.21
             1.21.1
-            1.21.2
+            1.21.3
           java: 17
       - name: 'Fabric: Publish to Modrinth'
         uses: WiIIiam278/mc-publish@hangar
@@ -121,7 +121,7 @@ jobs:
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           modrinth-dependencies: |
             placeholder-api | suggests | *
-          files-primary: target/PAPIProxyBridge-Fabric-${{ env.version_name }}+mc.1.21.2.jar
+          files-primary: target/PAPIProxyBridge-Fabric-${{ env.version_name }}+mc.1.21.3.jar
           name: PAPIProxyBridge (Fabric) v${{ env.version_name }}
           version: ${{ env.version_name }}
           version-type: alpha
@@ -129,7 +129,7 @@ jobs:
           loaders: |
             fabric
           game-versions: |
-            1.21.2
+            1.21.3
           java: 17
       - name: 'Bungee: Publish to Modrinth'
         uses: WiIIiam278/mc-publish@hangar
@@ -165,7 +165,7 @@ jobs:
             1.20.6
             1.21
             1.21.1
-            1.21.2
+            1.21.3
           java: 21
       - name: 'Velocity: Publish to Modrinth & Hangar'
         uses: WiIIiam278/mc-publish@hangar
@@ -205,5 +205,5 @@ jobs:
             1.20.6
             1.21
             1.21.1
-            1.21.2
+            1.21.3
           java: 17
