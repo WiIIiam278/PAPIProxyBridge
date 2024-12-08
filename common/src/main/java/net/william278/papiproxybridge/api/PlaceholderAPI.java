@@ -161,16 +161,21 @@ public final class PlaceholderAPI {
                             .build())
                     .put(text, formatted);
             return formatted;
-        }).exceptionally(throwable -> {
+        }).exceptionally(e -> {
             if (!requester.isConnected()) {
                 return text;
             }
-            if (throwable instanceof CompletionException || Arrays.stream(throwable.getSuppressed()).anyMatch(TimeoutException.class::isInstance)) {
-                plugin.log(Level.SEVERE, "Timed out formatting placeholders for " + requester.getUsername() +
-                        " timeout: " + requestTimeout + "ms. Is PapiProxyBridge up-to-date and installed on all backend servers?");
+
+            // Handle failed to format exceptions
+            if (e instanceof CompletionException || Arrays.stream(e.getSuppressed())
+                    .anyMatch(TimeoutException.class::isInstance)) {
+                plugin.log(Level.WARNING, ("Timed out formatting placeholders for %s after %sms." +
+                        "Is PAPIProxyBridge up-to-date and installed on all backend servers?")
+                        .formatted(requester.getUsername(), getRequestTimeout()));
             } else {
-                plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
+                plugin.log(Level.WARNING, "Failed to format placeholders for %s".formatted(requester.getUsername()), e);
             }
+
             return text;
         });
     }
@@ -253,16 +258,21 @@ public final class PlaceholderAPI {
                             .build())
                     .put(text, deserialized);
             return deserialized;
-        }).exceptionally(throwable -> {
+        }).exceptionally(e -> {
             if (!requester.isConnected()) {
                 return Component.text(text);
             }
-            if (throwable instanceof CompletionException || Arrays.stream(throwable.getSuppressed()).anyMatch(TimeoutException.class::isInstance)) {
-                plugin.log(Level.SEVERE, "Timed out formatting placeholders for " + requester.getUsername() +
-                        " timeout: " + requestTimeout + "ms. Is PapiProxyBridge up-to-date and installed on all backend servers?");
+
+            // Handle failed to format exceptions
+            if (e instanceof CompletionException || Arrays.stream(e.getSuppressed())
+                    .anyMatch(TimeoutException.class::isInstance)) {
+                plugin.log(Level.WARNING, ("Timed out formatting placeholders for %s after %sms." +
+                        "Is PAPIProxyBridge up-to-date and installed on all backend servers?")
+                        .formatted(requester.getUsername(), getRequestTimeout()));
             } else {
-                plugin.log(Level.WARNING, "Failed to format placeholders for " + requester.getUsername(), throwable);
+                plugin.log(Level.WARNING, "Failed to format placeholders for %s".formatted(requester.getUsername()), e);
             }
+
             return Component.text(text);
         });
     }
