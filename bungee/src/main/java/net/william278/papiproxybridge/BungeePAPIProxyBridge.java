@@ -73,7 +73,7 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
 
     @EventHandler
     public void onPluginMessageReceived(PluginMessageEvent event) {
-        this.handlePluginMessage(this, event.getTag(), event.getData());
+        this.handleMessage(this, event.getTag(), event.getData());
     }
 
     @EventHandler

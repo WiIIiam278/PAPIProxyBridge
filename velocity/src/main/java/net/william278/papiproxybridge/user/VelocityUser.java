@@ -55,9 +55,9 @@ public class VelocityUser implements ProxyUser {
     }
 
     @Override
-    public void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
+    public void sendMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
         player.getCurrentServer().ifPresent(server -> {
-            if (!server.sendPluginMessage(new LegacyChannelIdentifier(channel), message)) {
+            if (!server.sendMessage(new LegacyChannelIdentifier(channel), message)) {
                 plugin.log(Level.SEVERE, "Failed to send plugin message to " + server.getServerInfo().getName()
                                          + " for player " + player.getUsername() + " on channel "
                                          + channel);

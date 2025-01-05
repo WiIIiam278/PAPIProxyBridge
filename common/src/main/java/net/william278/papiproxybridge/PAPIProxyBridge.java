@@ -21,12 +21,17 @@ package net.william278.papiproxybridge;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import de.exlll.configlib.YamlConfigurations;
+import net.william278.papiproxybridge.config.Settings;
+import net.william278.papiproxybridge.messenger.Messenger;
 import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.Request;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -78,7 +83,7 @@ public interface PAPIProxyBridge {
 
     Optional<? extends OnlineUser> findPlayer(@NotNull String username);
 
-    default void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
+    default void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
         if (!channel.equals(plugin.getChannel()) && !channel.equals(getComponentChannel())) {
             return;
         }
@@ -96,7 +101,7 @@ public interface PAPIProxyBridge {
         inputStream.readFully(messageBody);
 
         try (final DataInputStream messageReader = new DataInputStream(new ByteArrayInputStream(messageBody))) {
-            user.handlePluginMessage(plugin, Request.fromString(messageReader.readUTF()), channel.equals(getComponentChannel()));
+            user.handleMessage(plugin, Request.fromString(messageReader.readUTF()), channel.equals(getComponentChannel()));
         } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to fully read plugin message", e);
         }
@@ -112,5 +117,19 @@ public interface PAPIProxyBridge {
     CompletableFuture<Set<String>> getServers(long requestTimeout);
 
     void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions);
+
+    File getDataFolder();
+
+    default void loadConfig() {
+        final Path configFile = getDataFolder().toPath().resolve("config.yml");
+        final Settings settings = YamlConfigurations.update(configFile, Settings.class);
+        setSettings(settings);
+    }
+
+    void setSettings(Settings settings);
+
+    void loadMessenger();
+
+    Messenger getMessenger();
 
 }

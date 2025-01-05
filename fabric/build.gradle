@@ -24,6 +24,9 @@ dependencies {
 
     modImplementation include("net.kyori:adventure-api:4.17.0")
 
+    implementation 'io.lettuce:lettuce-core:6.5.2.RELEASE'
+    implementation 'de.exlll:configlib-yaml:4.5.0'
+
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
     modCompileOnly "eu.pb4:placeholder-api:2.3.0+"
 

@@ -29,6 +29,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.text.Text;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
+import net.william278.papiproxybridge.config.Settings;
+import net.william278.papiproxybridge.messenger.Messenger;
+import net.william278.papiproxybridge.messenger.PluginMessageMessenger;
+import net.william278.papiproxybridge.messenger.redis.RedisMessenger;
 import net.william278.papiproxybridge.payload.ComponentPayload;
 import net.william278.papiproxybridge.payload.LiteralPayload;
 import net.william278.papiproxybridge.user.FabricUser;
@@ -37,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -45,10 +50,16 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
 
     public static final Logger LOGGER = LoggerFactory.getLogger("FabricPAPIProxyBridge");
     private Map<UUID, FabricUser> fabricUsers;
+    private Settings settings;
+    private Messenger messenger;
 
     @Override
     public void onInitializeServer() {
         fabricUsers = Maps.newConcurrentMap();
+        loadConfig();
+        loadMessenger();
+
+
         PlaceholderAPI.register(this);
 
         handleEvents();
@@ -78,8 +89,8 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
         PayloadTypeRegistry.playC2S().register(ComponentPayload.ID, ComponentPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ComponentPayload.ID, ComponentPayload.CODEC);
 
-        ServerPlayNetworking.registerGlobalReceiver(LiteralPayload.ID, (payload, context) -> this.handlePluginMessage(this, LiteralPayload.getChannel(), payload.getBytes()));
-        ServerPlayNetworking.registerGlobalReceiver(ComponentPayload.ID, (payload, context) -> this.handlePluginMessage(this, ComponentPayload.getChannel(), payload.getBytes()));
+        ServerPlayNetworking.registerGlobalReceiver(LiteralPayload.ID, (payload, context) -> this.handleMessage(this, LiteralPayload.getChannel(), payload.getBytes()));
+        ServerPlayNetworking.registerGlobalReceiver(ComponentPayload.ID, (payload, context) -> this.handleMessage(this, ComponentPayload.getChannel(), payload.getBytes()));
     }
 
     @Override
@@ -124,6 +135,29 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
         } else {
             LOGGER.info(message);
         }
+    }
+
+    @Override
+    public File getDataFolder() {
+        return new File(System.getProperty("user.dir"));
+    }
+
+    @Override
+    public void setSettings(Settings settings) {
+        this.settings = settings;
+    }
+
+    @Override
+    public void loadMessenger() {
+        switch (settings.getMessenger()) {
+            case REDIS -> messenger = new RedisMessenger(this, settings.getRedis());
+            case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
+        }
+    }
+
+    @Override
+    public Messenger getMessenger() {
+        return messenger;
     }
 
     @NotNull

@@ -102,7 +102,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
             return;
         }
 
-        handlePluginMessage(this, event.getIdentifier().getId(), event.getData());
+        handleMessage(this, event.getIdentifier().getId(), event.getData());
         event.setResult(PluginMessageEvent.ForwardResult.handled());
     }
 

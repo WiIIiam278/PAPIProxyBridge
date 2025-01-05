@@ -22,6 +22,10 @@ package net.william278.papiproxybridge;
 import com.google.common.collect.Maps;
 import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
+import net.william278.papiproxybridge.config.Settings;
+import net.william278.papiproxybridge.messenger.Messenger;
+import net.william278.papiproxybridge.messenger.PluginMessageMessenger;
+import net.william278.papiproxybridge.messenger.redis.RedisMessenger;
 import net.william278.papiproxybridge.papi.Formatter;
 import net.william278.papiproxybridge.user.BukkitUser;
 import net.william278.papiproxybridge.user.OnlineUser;
@@ -43,6 +47,8 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     private Formatter formatter;
     private Map<UUID, BukkitUser> users;
+    private Settings settings;
+    private Messenger messenger;
 
     @Override
     public void onLoad() {
@@ -53,11 +59,9 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     @Override
     public void onEnable() {
+        loadConfig();
         // Register the plugin message channel
-        getServer().getMessenger().registerOutgoingPluginChannel(this, getChannel());
-        getServer().getMessenger().registerOutgoingPluginChannel(this, getComponentChannel());
-        getServer().getMessenger().registerIncomingPluginChannel(this, getChannel(), this);
-        getServer().getMessenger().registerIncomingPluginChannel(this, getComponentChannel(), this);
+
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
@@ -130,7 +134,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte[] message) {
-        this.handlePluginMessage(this, channel, message);
+        this.handleMessage(this, channel, message);
     }
 
     @NotNull
@@ -157,4 +161,21 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         users.remove(event.getPlayer().getUniqueId());
     }
 
+    @Override
+    public void setSettings(Settings settings) {
+        this.settings = settings;
+    }
+
+    @Override
+    public void loadMessenger() {
+        switch (settings.getMessenger()) {
+            case REDIS -> messenger = new RedisMessenger(this, settings.getRedis());
+            case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
+        }
+    }
+
+    @Override
+    public Messenger getMessenger() {
+        return messenger;
+    }
 }

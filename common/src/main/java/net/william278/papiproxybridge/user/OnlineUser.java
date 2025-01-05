@@ -38,9 +38,7 @@ public interface OnlineUser {
     @NotNull
     UUID getUniqueId();
 
-    void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message);
-
-    default void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request, boolean wantsJson) {
+    default void sendMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request, boolean wantsJson) {
         final ByteArrayDataOutput messageWriter = ByteStreams.newDataOutput();
         messageWriter.writeUTF(getUsername()); // Username
 
@@ -56,10 +54,10 @@ public interface OnlineUser {
             return;
         }
 
-        this.sendPluginMessage(plugin, wantsJson ? plugin.getComponentChannel() : plugin.getChannel(), messageWriter.toByteArray());
+        plugin.getMessenger().sendMessage(request.getUuid(),wantsJson ? plugin.getComponentChannel() : plugin.getChannel(), messageWriter.toByteArray());
     }
 
-    void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson);
+    void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson);
 
     default boolean justSwitchedServer() {
         return false;

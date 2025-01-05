@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentMap;
 public interface ProxyUser extends OnlineUser {
 
     @Override
-    default void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
+    default void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
         final ConcurrentMap<UUID, CompletableFuture<String>> requests = ((ProxyPAPIProxyBridge) plugin).getRequests();
         CompletableFuture<String> future = requests.get(message.getUuid());
 
