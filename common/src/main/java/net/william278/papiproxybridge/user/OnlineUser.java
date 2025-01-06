@@ -38,7 +38,7 @@ public interface OnlineUser {
     @NotNull
     UUID getUniqueId();
 
-    default void sendMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request, boolean wantsJson) {
+    default void sendMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request, boolean wantsJson, boolean isRequest) {
         final ByteArrayDataOutput messageWriter = ByteStreams.newDataOutput();
         messageWriter.writeUTF(getUsername()); // Username
 
@@ -54,7 +54,7 @@ public interface OnlineUser {
             return;
         }
 
-        plugin.getMessenger().sendMessage(request.getUuid(),wantsJson ? plugin.getComponentChannel() : plugin.getChannel(), messageWriter.toByteArray());
+        plugin.getMessenger().sendMessage(request.getFormatFor(), wantsJson ? plugin.getComponentChannel(isRequest) : plugin.getChannel(isRequest), messageWriter.toByteArray());
     }
 
     void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson);

@@ -58,7 +58,7 @@ public final class BukkitUser implements OnlineUser {
     public void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
         ((BukkitPAPIProxyBridge) plugin).formatPlaceholders(message.getFormatFor(), this, message.getMessage()).thenAccept(formatted -> {
             message.setMessage(wantsJson ? GsonComponentSerializer.gson().serialize(Component.text(formatted)) : formatted);
-            this.sendMessage(plugin, message, wantsJson);
+            this.sendMessage(plugin, message, wantsJson, false);
         });
     }
 

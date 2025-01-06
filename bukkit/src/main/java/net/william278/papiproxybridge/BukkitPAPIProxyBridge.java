@@ -30,29 +30,31 @@ import net.william278.papiproxybridge.papi.Formatter;
 import net.william278.papiproxybridge.user.BukkitUser;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
-public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, PluginMessageListener, Listener {
+public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, Listener {
 
     private Formatter formatter;
     private Map<UUID, BukkitUser> users;
     private Settings settings;
     private Messenger messenger;
+    private ExecutorService executorService;
 
     @Override
     public void onLoad() {
         users = Maps.newConcurrentMap();
+        executorService = Executors.newFixedThreadPool(2);
         // Initialize the formatter
         formatter = new Formatter();
     }
@@ -60,8 +62,9 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public void onEnable() {
         loadConfig();
+        loadMessenger();
+        messenger.onEnable();
         // Register the plugin message channel
-
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
@@ -80,9 +83,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     @Override
     public void onDisable() {
-        // Unregister the plugin message channel
-        getServer().getMessenger().unregisterOutgoingPluginChannel(this);
-        getServer().getMessenger().unregisterIncomingPluginChannel(this);
+        messenger.onDisable();
     }
 
     private void loadOnlinePlayers() {
@@ -132,18 +133,9 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         }
     }
 
-    @Override
-    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte[] message) {
-        this.handleMessage(this, channel, message);
-    }
-
     @NotNull
     public final CompletableFuture<String> formatPlaceholders(@NotNull UUID formatFor, @NotNull BukkitUser requester, @NotNull String text) {
-        final CompletableFuture<String> future = new CompletableFuture<>();
-        EntityScheduler.get(this, requester.getPlayer()).runLater(
-                () -> future.complete(formatter.formatPlaceholders(formatFor, requester.getPlayer(), text)),
-                requester.justSwitchedServer() ? 2 : 1);
-        return future;
+        return CompletableFuture.supplyAsync(() -> formatter.formatPlaceholders(formatFor, requester.getPlayer(), text), executorService);
     }
 
     @EventHandler
@@ -169,7 +161,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public void loadMessenger() {
         switch (settings.getMessenger()) {
-            case REDIS -> messenger = new RedisMessenger(this, settings.getRedis());
+            case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), true);
             case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
         }
     }

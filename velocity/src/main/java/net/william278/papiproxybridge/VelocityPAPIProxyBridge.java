@@ -24,20 +24,25 @@ import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
-import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
-import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
+import net.william278.papiproxybridge.config.Settings;
+import net.william278.papiproxybridge.messenger.Messenger;
+import net.william278.papiproxybridge.messenger.PluginMessageMessenger;
+import net.william278.papiproxybridge.messenger.redis.RedisMessenger;
 import net.william278.papiproxybridge.user.VelocityUser;
 import org.bstats.velocity.Metrics;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
@@ -49,21 +54,22 @@ import java.util.logging.Level;
 public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     private final ConcurrentMap<UUID, CompletableFuture<String>> requests;
-    private final ChannelIdentifier channelIdentifier;
-    private final ChannelIdentifier componentChannelIdentifier;
+
     private final ProxyServer server;
     private final Logger logger;
     private final Metrics.Factory metricsFactory;
+    private final Path configDirectory;
     private final Map<UUID, VelocityUser> velocityUsers;
+    private Settings settings;
+    private Messenger messenger;
 
     @Inject
-    public VelocityPAPIProxyBridge(ProxyServer server, org.slf4j.Logger logger, Metrics.Factory metricsFactory) {
+    public VelocityPAPIProxyBridge(ProxyServer server, org.slf4j.Logger logger, Metrics.Factory metricsFactory, @DataDirectory Path configDirectory) {
         this.server = server;
         this.logger = logger;
         this.metricsFactory = metricsFactory;
+        this.configDirectory = configDirectory;
         this.requests = Maps.newConcurrentMap();
-        this.channelIdentifier = new LegacyChannelIdentifier(getChannel());
-        this.componentChannelIdentifier = new LegacyChannelIdentifier(getComponentChannel());
         this.velocityUsers = Maps.newConcurrentMap();
     }
 
@@ -81,10 +87,11 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     @Subscribe
     public void onProxyInitialization(@NotNull ProxyInitializeEvent event) {
-        // Register the plugin message channel
-        this.loadOnlineUsers();
-        server.getChannelRegistrar().register(this.channelIdentifier);
-        server.getChannelRegistrar().register(this.componentChannelIdentifier);
+        loadConfig();
+        loadMessenger();
+        messenger.onEnable();
+        loadOnlineUsers();
+
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
@@ -96,14 +103,8 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     }
 
     @Subscribe
-    public void onPluginMessageReceived(@NotNull PluginMessageEvent event) {
-        ChannelIdentifier channelId = event.getIdentifier();
-        if (!channelId.equals(this.channelIdentifier) && !channelId.equals(this.componentChannelIdentifier)) {
-            return;
-        }
-
-        handleMessage(this, event.getIdentifier().getId(), event.getData());
-        event.setResult(PluginMessageEvent.ForwardResult.handled());
+    public void onProxyShutdown(@NotNull ProxyShutdownEvent event) {
+        messenger.onDisable();
     }
 
     @Subscribe
@@ -146,6 +147,11 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     }
 
     @Override
+    public File getDataFolder() {
+        return configDirectory.toFile();
+    }
+
+    @Override
     @NotNull
     public ConcurrentMap<UUID, CompletableFuture<String>> getRequests() {
         return requests;
@@ -174,5 +180,32 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Override
     public Optional<VelocityUser> findPlayer(@NotNull String username) {
         return server.getPlayer(username).map(this::getPlayer);
+    }
+
+    public ProxyServer getServer() {
+        return server;
+    }
+
+    @Override
+    public void setSettings(Settings settings) {
+        this.settings = settings;
+    }
+
+    @Override
+    public void loadMessenger() {
+        switch (settings.getMessenger()) {
+            case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), false);
+            case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
+        }
+        log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
+    }
+
+    @Override
+    public Messenger getMessenger() {
+        return messenger;
+    }
+
+    public void setMessenger(Messenger messenger) {
+        this.messenger = messenger;
     }
 }

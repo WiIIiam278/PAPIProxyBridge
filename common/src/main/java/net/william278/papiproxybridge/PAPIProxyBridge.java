@@ -40,20 +40,23 @@ public interface PAPIProxyBridge {
 
     String HANDSHAKE_PLACEHOLDER = "%papiproxybridge_handshake%";
     String HANDSHAKE_RESPONSE = "confirmed";
+    String NAMESPACE = "papiproxybridge";
+    String REQUEST_CHANNEL = "request";
+    String RESPONSE_CHANNEL = "response";
 
     @NotNull
-    default String getChannel() {
-        return getChannelNamespace() + ":" + getChannelKey();
+    default String getChannel(boolean isRequest) {
+        return getChannelNamespace() + ":" + getChannelKey() + (isRequest ? ":" + REQUEST_CHANNEL : ":" + RESPONSE_CHANNEL);
     }
 
     @NotNull
-    default String getComponentChannel() {
-        return getChannelNamespace() + ":" + getComponentChannelKey();
+    default String getComponentChannel(boolean isRequest) {
+        return getChannelNamespace() + ":" + getComponentChannelKey() + (isRequest ? ":" + REQUEST_CHANNEL : ":" + RESPONSE_CHANNEL);
     }
 
     @NotNull
     default String getChannelNamespace() {
-        return "papiproxybridge";
+        return NAMESPACE;
     }
 
     @NotNull
@@ -83,8 +86,8 @@ public interface PAPIProxyBridge {
 
     Optional<? extends OnlineUser> findPlayer(@NotNull String username);
 
-    default void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
-        if (!channel.equals(plugin.getChannel()) && !channel.equals(getComponentChannel())) {
+    default void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message, boolean isRequest) {
+        if (!channel.equals(plugin.getChannel(isRequest)) && !channel.equals(getComponentChannel(isRequest))) {
             return;
         }
 
@@ -101,7 +104,7 @@ public interface PAPIProxyBridge {
         inputStream.readFully(messageBody);
 
         try (final DataInputStream messageReader = new DataInputStream(new ByteArrayInputStream(messageBody))) {
-            user.handleMessage(plugin, Request.fromString(messageReader.readUTF()), channel.equals(getComponentChannel()));
+            user.handleMessage(plugin, Request.fromString(messageReader.readUTF()), channel.equals(getComponentChannel(isRequest)));
         } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to fully read plugin message", e);
         }

@@ -51,11 +51,6 @@ public class BungeeUser implements ProxyUser {
     }
 
     @Override
-    public void sendMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
-        player.getServer().getInfo().sendData(channel, message);
-    }
-
-    @Override
     @NotNull
     public String getServerName() {
         return player.getServer().getInfo().getName();
@@ -64,5 +59,9 @@ public class BungeeUser implements ProxyUser {
     @Override
     public boolean isConnected() {
         return player.isConnected();
+    }
+
+    public ProxiedPlayer getPlayer() {
+        return player;
     }
 }

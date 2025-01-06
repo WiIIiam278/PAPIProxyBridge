@@ -26,6 +26,10 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
+import net.william278.papiproxybridge.config.Settings;
+import net.william278.papiproxybridge.messenger.Messenger;
+import net.william278.papiproxybridge.messenger.PluginMessageMessenger;
+import net.william278.papiproxybridge.messenger.redis.RedisMessenger;
 import net.william278.papiproxybridge.user.BungeeUser;
 import org.bstats.bungeecord.Metrics;
 import org.jetbrains.annotations.NotNull;
@@ -40,15 +44,16 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
 
     private ConcurrentMap<UUID, CompletableFuture<String>> requests;
     private Map<UUID, BungeeUser> users;
+    private Settings settings;
+    private Messenger messenger;
 
     @Override
     public void onEnable() {
         requests = Maps.newConcurrentMap();
         users = Maps.newConcurrentMap();
-
-        // Register the plugin message channel
-        getProxy().registerChannel(getChannel());
-        getProxy().registerChannel(getComponentChannel());
+        loadConfig();
+        loadMessenger();
+        messenger.onEnable();
 
         // Register the plugin message listener
         getProxy().getPluginManager().registerListener(this, this);
@@ -64,16 +69,14 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
 
     @Override
     public void onDisable() {
-        // Unregister the plugin message channel
-        getProxy().unregisterChannel(getChannel());
-
+        messenger.onDisable();
         // Unregister the plugin message listener
         getProxy().getPluginManager().unregisterListener(this);
     }
 
     @EventHandler
     public void onPluginMessageReceived(PluginMessageEvent event) {
-        this.handleMessage(this, event.getTag(), event.getData());
+        this.handleMessage(this, event.getTag(), event.getData(), false);
     }
 
     @EventHandler
@@ -126,6 +129,24 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
         } else {
             getLogger().log(level, message);
         }
+    }
+
+    @Override
+    public void setSettings(Settings settings) {
+        this.settings = settings;
+    }
+
+    @Override
+    public void loadMessenger() {
+        switch (settings.getMessenger()) {
+            case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), false);
+            case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
+        }
+    }
+
+    @Override
+    public Messenger getMessenger() {
+        return messenger;
     }
 
 }

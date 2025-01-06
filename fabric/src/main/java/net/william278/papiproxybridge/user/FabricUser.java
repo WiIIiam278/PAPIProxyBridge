@@ -84,7 +84,7 @@ public class FabricUser implements OnlineUser {
         }).collect(Component.toComponent()).mergeStyle(original);
         String response = wantsJson ? GsonComponentSerializer.gson().serialize(transformed) : formatted.getString();
         message.setMessage(response);
-        this.sendMessage(plugin, message, wantsJson);
+        this.sendMessage(plugin, message, wantsJson, false);
     }
 
     @NotNull
