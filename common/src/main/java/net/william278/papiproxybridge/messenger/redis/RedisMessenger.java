@@ -64,6 +64,11 @@ public class RedisMessenger extends Messenger {
     }
 
     @Override
+    public void onDisable() {
+        client.close();
+    }
+
+    @Override
     public void sendMessage(@NotNull UUID uuid, @NotNull String channel, byte @NotNull [] message) {
         connection.async().publish(channel, message);
     }

@@ -56,7 +56,6 @@ public class PluginMessageMessenger extends Messenger implements PluginMessageLi
             return;
         }
 
-
         player.sendPluginMessage(plugin, channel, message);
     }
 

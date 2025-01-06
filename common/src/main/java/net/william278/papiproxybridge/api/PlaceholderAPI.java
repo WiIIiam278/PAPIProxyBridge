@@ -61,6 +61,7 @@ public final class PlaceholderAPI {
     private long requestTimeout = 1000;
     private long cacheExpiry = 30000;
     private int retryTimes = 3;
+    private long lastError = 0;
 
     /**
      * <b>Internal only</b> - Create a new instance of the API
@@ -119,14 +120,14 @@ public final class PlaceholderAPI {
         });
     }
 
-
-    private static <T> CompletableFuture<T> orTimeoutAsync(CompletableFuture<T> future, long timeout, @NotNull TimeUnit unit) {
+    @SuppressWarnings("unchecked")
+    private static <T> CompletableFuture<T> orTimeoutAsync(CompletableFuture<T> future, long timeout) {
         final CompletableFuture<T> timeoutFuture = new CompletableFuture<>();
         SCHEDULER.schedule(() -> {
             final TimeoutException timeoutException = new TimeoutException("Timeout reached");
             timeoutFuture.completeExceptionally(timeoutException);
             future.completeExceptionally(timeoutException);
-        }, timeout, unit);
+        }, timeout, TimeUnit.MILLISECONDS);
         return CompletableFuture.anyOf(future, timeoutFuture).thenApply(o -> (T) o);
     }
 
@@ -156,7 +157,7 @@ public final class PlaceholderAPI {
             return CompletableFuture.completedFuture(cache.get(formatFor).get(text));
         }
         final CompletableFuture<String> future = plugin.createRequest(text, requester, formatFor, false, requestTimeout);
-        return orTimeoutAsync(future, requestTimeout, TimeUnit.MILLISECONDS).thenApply(formatted -> {
+        return orTimeoutAsync(future, requestTimeout).thenApply(formatted -> {
             cache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
                             .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
                             .build())
@@ -164,6 +165,10 @@ public final class PlaceholderAPI {
             return formatted;
         }).exceptionally(e -> {
             if (!requester.isConnected()) {
+                return text;
+            }
+
+            if (checkLastError()) {
                 return text;
             }
 
@@ -252,7 +257,7 @@ public final class PlaceholderAPI {
             return CompletableFuture.completedFuture(componentCache.get(formatFor).get(text));
         }
         final CompletableFuture<String> future = plugin.createRequest(text, requester, formatFor, true, requestTimeout);
-        return orTimeoutAsync(future, requestTimeout, TimeUnit.MILLISECONDS).thenApply(formatted -> {
+        return orTimeoutAsync(future, requestTimeout).thenApply(formatted -> {
             final Component deserialized = GsonComponentSerializer.gson().deserializeOr(formatted, Component.text(formatted));
             componentCache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
                             .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
@@ -261,6 +266,10 @@ public final class PlaceholderAPI {
             return deserialized;
         }).exceptionally(e -> {
             if (!requester.isConnected()) {
+                return Component.text(text);
+            }
+
+            if (checkLastError()) {
                 return Component.text(text);
             }
 
@@ -439,5 +448,14 @@ public final class PlaceholderAPI {
      */
     public Settings.MessengerType getMessengerType() {
         return plugin.getSettings().getMessenger();
+    }
+
+    private boolean checkLastError() {
+        if (System.currentTimeMillis() - lastError < 10000) {
+            return true;
+        }
+
+        lastError = System.currentTimeMillis();
+        return false;
     }
 }

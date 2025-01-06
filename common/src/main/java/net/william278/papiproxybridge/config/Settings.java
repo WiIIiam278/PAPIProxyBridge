@@ -26,15 +26,6 @@ import de.exlll.configlib.Configuration;
 @SuppressWarnings({"unused", "FieldMayBeFinal"})
 public class Settings {
 
-
-    public enum MessengerType {
-        PLUGIN_MESSAGE,
-        REDIS
-    }
-
-    public record RedisSettings(String host, int port, String password) {
-    }
-
     @Comment("The messenger to use for sending plugin messages. Options are PLUGIN_MESSAGE or REDIS.")
     private MessengerType messenger = MessengerType.PLUGIN_MESSAGE;
     private RedisSettings redis = new RedisSettings("localhost", 6379, "");
@@ -47,5 +38,12 @@ public class Settings {
         return redis;
     }
 
+    public enum MessengerType {
+        PLUGIN_MESSAGE,
+        REDIS
+    }
+
+    public record RedisSettings(String host, int port, String password) {
+    }
 
 }

@@ -142,6 +142,8 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
             case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), false);
             case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
         }
+
+        log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
     }
 
     @Override

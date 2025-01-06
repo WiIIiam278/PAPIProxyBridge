@@ -35,8 +35,6 @@ import java.util.logging.Level;
 public class PluginMessageMessenger extends Messenger {
 
     private final VelocityPAPIProxyBridge plugin;
-    private ChannelIdentifier requestChannelIdentifier;
-    private ChannelIdentifier requestComponentChannelIdentifier;
     private ChannelIdentifier responseChannelIdentifier;
     private ChannelIdentifier responseComponentChannelIdentifier;
 
@@ -46,8 +44,6 @@ public class PluginMessageMessenger extends Messenger {
 
     @Override
     public void onEnable() {
-        requestChannelIdentifier = new LegacyChannelIdentifier(plugin.getChannel(true));
-        requestComponentChannelIdentifier = new LegacyChannelIdentifier(plugin.getComponentChannel(true));
         responseChannelIdentifier = new LegacyChannelIdentifier(plugin.getChannel(false));
         responseComponentChannelIdentifier = new LegacyChannelIdentifier(plugin.getComponentChannel(false));
         plugin.getServer().getChannelRegistrar().register(this.responseChannelIdentifier);
@@ -80,15 +76,12 @@ public class PluginMessageMessenger extends Messenger {
             return;
         }
 
-
         plugin.handleMessage(plugin, event.getIdentifier().getId(), event.getData(), false);
         event.setResult(PluginMessageEvent.ForwardResult.handled());
     }
 
     @Override
     public void onDisable() {
-        plugin.getServer().getChannelRegistrar().unregister(this.requestChannelIdentifier);
-        plugin.getServer().getChannelRegistrar().unregister(this.requestComponentChannelIdentifier);
         plugin.getServer().getChannelRegistrar().unregister(this.responseChannelIdentifier);
         plugin.getServer().getChannelRegistrar().unregister(this.responseComponentChannelIdentifier);
         plugin.getServer().getEventManager().unregisterListener(plugin, this);
