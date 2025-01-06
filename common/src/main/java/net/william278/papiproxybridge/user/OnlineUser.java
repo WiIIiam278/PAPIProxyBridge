@@ -54,7 +54,7 @@ public interface OnlineUser {
             return;
         }
 
-        plugin.getMessenger().sendMessage(request.getFormatFor(), wantsJson ? plugin.getComponentChannel(isRequest) : plugin.getChannel(isRequest), messageWriter.toByteArray());
+        plugin.getMessenger().sendMessage(request.getFormatFor(), wantsJson ? PAPIProxyBridge.getComponentChannel(isRequest) : PAPIProxyBridge.getChannel(isRequest), messageWriter.toByteArray());
     }
 
     void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson);

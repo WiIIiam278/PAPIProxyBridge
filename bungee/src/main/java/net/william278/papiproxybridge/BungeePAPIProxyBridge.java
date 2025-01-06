@@ -155,5 +155,4 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     public Settings getSettings() {
         return settings;
     }
-
 }

@@ -45,5 +45,4 @@ public class Settings {
 
     public record RedisSettings(String host, int port, String password) {
     }
-
 }

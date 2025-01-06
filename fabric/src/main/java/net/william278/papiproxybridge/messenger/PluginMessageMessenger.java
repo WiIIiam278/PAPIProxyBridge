@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class PluginMessageMessenger extends Messenger {
 
@@ -43,13 +44,17 @@ public class PluginMessageMessenger extends Messenger {
 
     @Override
     public void onEnable() {
-        PayloadTypeRegistry.playC2S().register(LiteralPayload.ID, LiteralPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(LiteralPayload.ID, LiteralPayload.CODEC);
-        PayloadTypeRegistry.playC2S().register(ComponentPayload.ID, ComponentPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ComponentPayload.ID, ComponentPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(LiteralPayload.RESPONSE_ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(LiteralPayload.RESPONSE_ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(LiteralPayload.REQUEST_ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(LiteralPayload.REQUEST_ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ComponentPayload.RESPONSE_ID, ComponentPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ComponentPayload.RESPONSE_ID, ComponentPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ComponentPayload.REQUEST_ID, ComponentPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ComponentPayload.REQUEST_ID, ComponentPayload.CODEC);
 
-        ServerPlayNetworking.registerGlobalReceiver(LiteralPayload.ID, (payload, context) -> plugin.handleMessage(plugin, LiteralPayload.getChannel(), payload.getBytes(), true));
-        ServerPlayNetworking.registerGlobalReceiver(ComponentPayload.ID, (payload, context) -> plugin.handleMessage(plugin, ComponentPayload.getChannel(), payload.getBytes(), true));
+        ServerPlayNetworking.registerGlobalReceiver(LiteralPayload.REQUEST_ID, (payload, context) -> plugin.handleMessage(plugin, LiteralPayload.REQUEST_ID.id().toString(), payload.getBytes(), true));
+        ServerPlayNetworking.registerGlobalReceiver(ComponentPayload.REQUEST_ID, (payload, context) -> plugin.handleMessage(plugin, ComponentPayload.REQUEST_ID.id().toString(), payload.getBytes(), true));
     }
 
     @Override
@@ -60,11 +65,10 @@ public class PluginMessageMessenger extends Messenger {
         }
         final FabricUser user = optionalFabricUser.get();
 
-        final CustomPayload payload = channel.equals(ComponentPayload.getChannel()) ?
-                new ComponentPayload(message) :
-                new LiteralPayload(message);
+        final CustomPayload payload = channel.equals(ComponentPayload.RESPONSE_ID.id().toString()) ?
+                new ComponentPayload(message, false) :
+                new LiteralPayload(message, false);
         final Packet<?> packet = new CustomPayloadS2CPacket(payload);
         user.getPlayer().networkHandler.sendPacket(packet);
     }
-
 }

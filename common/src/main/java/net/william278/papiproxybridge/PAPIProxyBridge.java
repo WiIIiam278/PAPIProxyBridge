@@ -41,32 +41,42 @@ public interface PAPIProxyBridge {
     String HANDSHAKE_PLACEHOLDER = "%papiproxybridge_handshake%";
     String HANDSHAKE_RESPONSE = "confirmed";
     String NAMESPACE = "papiproxybridge";
-    String REQUEST_CHANNEL = "request";
-    String RESPONSE_CHANNEL = "response";
+    String REQUEST = "request";
+    String RESPONSE = "response";
+    String FORMAT_CHANNEL = "format";
+    String COMPONENT_CHANNEL = "component";
 
     @NotNull
-    default String getChannel(boolean isRequest) {
-        return getChannelNamespace() + ":" + getChannelKey() + "-" + (isRequest ? REQUEST_CHANNEL : RESPONSE_CHANNEL);
+    static String getChannel(boolean isRequest) {
+        return getChannelNamespace() + ":" + subChannel(isRequest);
     }
 
     @NotNull
-    default String getComponentChannel(boolean isRequest) {
-        return getChannelNamespace() + ":" + getComponentChannelKey() + "-" + (isRequest ? REQUEST_CHANNEL : RESPONSE_CHANNEL);
+    static String getComponentChannel(boolean isRequest) {
+        return getChannelNamespace() + ":" + subComponentChannel(isRequest);
+    }
+
+    static String subChannel(boolean isRequest) {
+        return getChannelKey() + "-" + (isRequest ? REQUEST : RESPONSE);
+    }
+
+    static String subComponentChannel(boolean isRequest) {
+        return getComponentChannelKey() + "-" + (isRequest ? REQUEST : RESPONSE);
     }
 
     @NotNull
-    default String getChannelNamespace() {
+    static String getChannelNamespace() {
         return NAMESPACE;
     }
 
     @NotNull
-    default String getChannelKey() {
-        return "format";
+    static String getChannelKey() {
+        return FORMAT_CHANNEL;
     }
 
     @NotNull
-    default String getComponentChannelKey() {
-        return "component";
+    static String getComponentChannelKey() {
+        return COMPONENT_CHANNEL;
     }
 
     default String getLoadMessage() {
@@ -87,7 +97,7 @@ public interface PAPIProxyBridge {
     Optional<? extends OnlineUser> findPlayer(@NotNull String username);
 
     default void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message, boolean isRequest) {
-        if (!channel.equals(plugin.getChannel(isRequest)) && !channel.equals(getComponentChannel(isRequest))) {
+        if (!channel.equals(PAPIProxyBridge.getChannel(isRequest)) && !channel.equals(getComponentChannel(isRequest))) {
             return;
         }
 
@@ -95,7 +105,6 @@ public interface PAPIProxyBridge {
         final String username = inputStream.readUTF();
         final OnlineUser user = plugin.findPlayer(username).orElse(null);
         if (user == null) {
-            plugin.log(Level.SEVERE, "Received plugin message from unknown user " + username);
             return;
         }
 
@@ -124,8 +133,8 @@ public interface PAPIProxyBridge {
     File getDataFolder();
 
     default void loadConfig() {
-        final Path configFile = getDataFolder().toPath().resolve("config.yml");
-        final Settings settings = YamlConfigurations.update(configFile, Settings.class);
+        final Path settingsFile = getDataFolder().toPath().resolve("settings.yml");
+        final Settings settings = YamlConfigurations.update(settingsFile, Settings.class);
         setSettings(settings);
     }
 

@@ -24,6 +24,7 @@ import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
+import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.VelocityPAPIProxyBridge;
 import net.william278.papiproxybridge.user.VelocityUser;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +45,8 @@ public class PluginMessageMessenger extends Messenger {
 
     @Override
     public void onEnable() {
-        responseChannelIdentifier = new LegacyChannelIdentifier(plugin.getChannel(false));
-        responseComponentChannelIdentifier = new LegacyChannelIdentifier(plugin.getComponentChannel(false));
+        responseChannelIdentifier = new LegacyChannelIdentifier(PAPIProxyBridge.getChannel(false));
+        responseComponentChannelIdentifier = new LegacyChannelIdentifier(PAPIProxyBridge.getComponentChannel(false));
         plugin.getServer().getChannelRegistrar().register(this.responseChannelIdentifier);
         plugin.getServer().getChannelRegistrar().register(this.responseComponentChannelIdentifier);
         plugin.getServer().getEventManager().register(plugin, this);

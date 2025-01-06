@@ -23,6 +23,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.william278.papiproxybridge.BungeePAPIProxyBridge;
+import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.user.BungeeUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,10 +41,10 @@ public class PluginMessageMessenger extends Messenger implements Listener {
     @Override
     public void onEnable() {
         // Register the plugin message channel
-        plugin.getProxy().registerChannel(plugin.getChannel(true));
-        plugin.getProxy().registerChannel(plugin.getComponentChannel(true));
-        plugin.getProxy().registerChannel(plugin.getChannel(false));
-        plugin.getProxy().registerChannel(plugin.getComponentChannel(false));
+        plugin.getProxy().registerChannel(PAPIProxyBridge.getChannel(true));
+        plugin.getProxy().registerChannel(PAPIProxyBridge.getComponentChannel(true));
+        plugin.getProxy().registerChannel(PAPIProxyBridge.getChannel(false));
+        plugin.getProxy().registerChannel(PAPIProxyBridge.getComponentChannel(false));
 
         plugin.getProxy().getPluginManager().registerListener(plugin, this);
     }
@@ -67,9 +68,9 @@ public class PluginMessageMessenger extends Messenger implements Listener {
 
     @Override
     public void onDisable() {
-        plugin.getProxy().unregisterChannel(plugin.getChannel(true));
-        plugin.getProxy().unregisterChannel(plugin.getComponentChannel(true));
-        plugin.getProxy().unregisterChannel(plugin.getChannel(false));
-        plugin.getProxy().unregisterChannel(plugin.getComponentChannel(false));
+        plugin.getProxy().unregisterChannel(PAPIProxyBridge.getChannel(true));
+        plugin.getProxy().unregisterChannel(PAPIProxyBridge.getComponentChannel(true));
+        plugin.getProxy().unregisterChannel(PAPIProxyBridge.getChannel(false));
+        plugin.getProxy().unregisterChannel(PAPIProxyBridge.getComponentChannel(false));
     }
 }

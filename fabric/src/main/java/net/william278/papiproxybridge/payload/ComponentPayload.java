@@ -23,27 +23,28 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
+import net.william278.papiproxybridge.PAPIProxyBridge;
 
 public final class ComponentPayload extends TemplatePayload {
 
-    public static final CustomPayload.Id<ComponentPayload> ID = new CustomPayload.Id<>(Identifier.of("papiproxybridge", "component"));
+    public static final CustomPayload.Id<ComponentPayload> REQUEST_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(false)));
+    public static final CustomPayload.Id<ComponentPayload> RESPONSE_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(true)));
     public static final PacketCodec<PacketByteBuf, ComponentPayload> CODEC = PacketCodec.of((value, buf) -> writeBytes(buf, value.bytes), ComponentPayload::new);
 
-    public ComponentPayload(byte[] bytes) {
+    private final boolean isRequest;
+
+    public ComponentPayload(byte[] bytes, boolean isRequest) {
         super(bytes);
+        this.isRequest = isRequest;
     }
 
     private ComponentPayload(PacketByteBuf buf) {
-        this(getWrittenBytes(buf));
+        this(getWrittenBytes(buf), true);
     }
 
     @Override
     public Id<? extends CustomPayload> getId() {
-        return ID;
-    }
-
-    public static String getChannel() {
-        return "papiproxybridge:component";
+        return isRequest ? REQUEST_ID : RESPONSE_ID;
     }
 
 }

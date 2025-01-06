@@ -47,6 +47,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     private Formatter formatter;
     private Map<UUID, BukkitUser> users;
+    private Map<String, BukkitUser> usersByName;
     private Settings settings;
     private Messenger messenger;
     private ExecutorService executorService;
@@ -54,6 +55,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public void onLoad() {
         users = Maps.newConcurrentMap();
+        usersByName = Maps.newConcurrentMap();
         executorService = Executors.newFixedThreadPool(2);
         // Initialize the formatter
         formatter = new Formatter();
@@ -88,7 +90,11 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     private void loadOnlinePlayers() {
         users.clear();
-        getServer().getOnlinePlayers().forEach(player -> users.put(player.getUniqueId(), BukkitUser.adapt(player)));
+        getServer().getOnlinePlayers().forEach(player -> {
+            final BukkitUser user = BukkitUser.adapt(player);
+            users.put(player.getUniqueId(), user);
+            usersByName.put(user.getUsername(), user);
+        });
     }
 
     @Override
@@ -109,9 +115,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     @Override
     public Optional<BukkitUser> findPlayer(@NotNull String username) {
-        return users.values().stream()
-                .filter(user -> user.getPlayer().getName().equals(username))
-                .findFirst();
+        return Optional.ofNullable(usersByName.get(username));
     }
 
     @Override
@@ -143,6 +147,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         final BukkitUser user = BukkitUser.adapt(event.getPlayer());
         user.setJustSwitchedServer(true);
         users.put(user.getUniqueId(), user);
+        usersByName.put(user.getUsername(), user);
         EntityScheduler.get(this, user.getPlayer()).runLater(
                 () -> user.setJustSwitchedServer(false),
                 20);
@@ -151,6 +156,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         users.remove(event.getPlayer().getUniqueId());
+        usersByName.remove(event.getPlayer().getName());
     }
 
     @Override
@@ -175,5 +181,9 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public Settings getSettings() {
         return settings;
+    }
+
+    public ExecutorService getExecutorService() {
+        return executorService;
     }
 }

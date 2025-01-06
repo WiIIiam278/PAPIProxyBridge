@@ -82,6 +82,6 @@ public class RedisMessenger extends Messenger {
             }
         });
 
-        pubSubConnection.async().subscribe(plugin.getChannel(isRequest), plugin.getComponentChannel(isRequest));
+        pubSubConnection.async().subscribe(PAPIProxyBridge.getChannel(isRequest), PAPIProxyBridge.getComponentChannel(isRequest));
     }
 }

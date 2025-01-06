@@ -19,7 +19,9 @@
 
 package net.william278.papiproxybridge.messenger;
 
+import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
 import net.william278.papiproxybridge.BukkitPAPIProxyBridge;
+import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -37,10 +39,10 @@ public class PluginMessageMessenger extends Messenger implements PluginMessageLi
 
     @Override
     public void onEnable() {
-        plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, plugin.getChannel(false));
-        plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, plugin.getComponentChannel(false));
-        plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, plugin.getChannel(true), this);
-        plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, plugin.getComponentChannel(true), this);
+        plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, PAPIProxyBridge.getChannel(false));
+        plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, PAPIProxyBridge.getComponentChannel(false));
+        plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, PAPIProxyBridge.getChannel(true), this);
+        plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, PAPIProxyBridge.getComponentChannel(true), this);
     }
 
     @Override
@@ -61,6 +63,6 @@ public class PluginMessageMessenger extends Messenger implements PluginMessageLi
 
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte @NotNull [] message) {
-        plugin.handleMessage(plugin, channel, message, true);
+        plugin.getExecutorService().submit(() -> plugin.handleMessage(plugin, channel, message, true));
     }
 }
