@@ -50,15 +50,13 @@ public class PluginMessageMessenger extends Messenger {
         requestComponentChannelIdentifier = new LegacyChannelIdentifier(plugin.getComponentChannel(true));
         responseChannelIdentifier = new LegacyChannelIdentifier(plugin.getChannel(false));
         responseComponentChannelIdentifier = new LegacyChannelIdentifier(plugin.getComponentChannel(false));
-        plugin.getServer().getChannelRegistrar().register(this.requestChannelIdentifier);
-        plugin.getServer().getChannelRegistrar().register(this.requestComponentChannelIdentifier);
         plugin.getServer().getChannelRegistrar().register(this.responseChannelIdentifier);
         plugin.getServer().getChannelRegistrar().register(this.responseComponentChannelIdentifier);
+        plugin.getServer().getEventManager().register(plugin, this);
     }
 
     @Override
     public void sendMessage(@NotNull UUID uuid, @NotNull String channel, byte @NotNull [] message) {
-        System.out.println("Sending message to " + channel);
         final Optional<VelocityUser> optionalVelocityUser = plugin.findPlayer(uuid);
         if (optionalVelocityUser.isEmpty()) {
             return;
@@ -67,7 +65,6 @@ public class PluginMessageMessenger extends Messenger {
         final VelocityUser user = optionalVelocityUser.get();
         final Player player = user.getPlayer();
         player.getCurrentServer().ifPresent(server -> {
-            System.out.println("Sending message to " + server.getServerInfo().getName() + " for player " + player.getUsername() + " on channel " + channel);
             if (!server.sendPluginMessage(new LegacyChannelIdentifier(channel), message)) {
                 plugin.log(Level.SEVERE, "Failed to send plugin message to " + server.getServerInfo().getName()
                         + " for player " + player.getUsername() + " on channel "
@@ -83,6 +80,7 @@ public class PluginMessageMessenger extends Messenger {
             return;
         }
 
+
         plugin.handleMessage(plugin, event.getIdentifier().getId(), event.getData(), false);
         event.setResult(PluginMessageEvent.ForwardResult.handled());
     }
@@ -93,5 +91,6 @@ public class PluginMessageMessenger extends Messenger {
         plugin.getServer().getChannelRegistrar().unregister(this.requestComponentChannelIdentifier);
         plugin.getServer().getChannelRegistrar().unregister(this.responseChannelIdentifier);
         plugin.getServer().getChannelRegistrar().unregister(this.responseComponentChannelIdentifier);
+        plugin.getServer().getEventManager().unregisterListener(plugin, this);
     }
 }

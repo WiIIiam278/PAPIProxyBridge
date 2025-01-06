@@ -146,6 +146,11 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
         return messenger;
     }
 
+    @Override
+    public Settings getSettings() {
+        return settings;
+    }
+
     @NotNull
     public final Text formatPlaceholders(@NotNull UUID formatFor, @NotNull FabricUser requester, @NotNull String text) {
         text = text.replaceAll(HANDSHAKE_PLACEHOLDER, HANDSHAKE_RESPONSE);

@@ -149,4 +149,9 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
         return messenger;
     }
 
+    @Override
+    public Settings getSettings() {
+        return settings;
+    }
+
 }

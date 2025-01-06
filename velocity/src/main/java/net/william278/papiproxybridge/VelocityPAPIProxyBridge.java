@@ -205,6 +205,11 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         return messenger;
     }
 
+    @Override
+    public Settings getSettings() {
+        return settings;
+    }
+
     public void setMessenger(Messenger messenger) {
         this.messenger = messenger;
     }

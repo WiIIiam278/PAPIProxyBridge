@@ -40,9 +40,7 @@ public class PluginMessageMessenger extends Messenger implements PluginMessageLi
         plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, plugin.getChannel(false));
         plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, plugin.getComponentChannel(false));
         plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, plugin.getChannel(true), this);
-        plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, plugin.getChannel(false), this);
         plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, plugin.getComponentChannel(true), this);
-        System.out.println("Registered plugin message channel");
     }
 
     @Override
@@ -58,12 +56,12 @@ public class PluginMessageMessenger extends Messenger implements PluginMessageLi
             return;
         }
 
+
         player.sendPluginMessage(plugin, channel, message);
     }
 
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte @NotNull [] message) {
-        System.out.println("Received message on " + channel);
         plugin.handleMessage(plugin, channel, message, true);
     }
 }

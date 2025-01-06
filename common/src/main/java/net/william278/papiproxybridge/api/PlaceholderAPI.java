@@ -24,6 +24,7 @@ import net.jodah.expiringmap.ExpiringMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.william278.papiproxybridge.PAPIProxyBridge;
+import net.william278.papiproxybridge.config.Settings;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -428,5 +429,15 @@ public final class PlaceholderAPI {
      */
     public int getRetryTimes() {
         return retryTimes;
+    }
+
+    /**
+     * Returns the messenger type
+     *
+     * @return The messenger type
+     * @since 1.7.3
+     */
+    public Settings.MessengerType getMessengerType() {
+        return plugin.getSettings().getMessenger();
     }
 }

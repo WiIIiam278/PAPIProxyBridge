@@ -170,4 +170,9 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     public Messenger getMessenger() {
         return messenger;
     }
+
+    @Override
+    public Settings getSettings() {
+        return settings;
+    }
 }

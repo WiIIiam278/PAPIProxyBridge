@@ -23,12 +23,13 @@ import io.lettuce.core.codec.RedisCodec;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class StringByteArrayCodec implements RedisCodec<String, byte[]> {
 
     public static final StringByteArrayCodec INSTANCE = new StringByteArrayCodec();
     private static final byte[] EMPTY = new byte[0];
-    private final Charset charset = Charset.forName("UTF-8");
+    private final Charset charset = StandardCharsets.UTF_8;
 
     @Override
     public String decodeKey(final ByteBuffer bytes) {

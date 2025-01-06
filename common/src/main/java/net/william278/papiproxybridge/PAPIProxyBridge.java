@@ -46,12 +46,12 @@ public interface PAPIProxyBridge {
 
     @NotNull
     default String getChannel(boolean isRequest) {
-        return getChannelNamespace() + ":" + getChannelKey() + (isRequest ? ":" + REQUEST_CHANNEL : ":" + RESPONSE_CHANNEL);
+        return getChannelNamespace() + ":" + getChannelKey() + "-" + (isRequest ? REQUEST_CHANNEL : RESPONSE_CHANNEL);
     }
 
     @NotNull
     default String getComponentChannel(boolean isRequest) {
-        return getChannelNamespace() + ":" + getComponentChannelKey() + (isRequest ? ":" + REQUEST_CHANNEL : ":" + RESPONSE_CHANNEL);
+        return getChannelNamespace() + ":" + getComponentChannelKey() + "-" + (isRequest ? REQUEST_CHANNEL : RESPONSE_CHANNEL);
     }
 
     @NotNull
@@ -134,5 +134,7 @@ public interface PAPIProxyBridge {
     void loadMessenger();
 
     Messenger getMessenger();
+
+    Settings getSettings();
 
 }

@@ -19,6 +19,7 @@
 
 package net.william278.papiproxybridge.config;
 
+import de.exlll.configlib.Comment;
 import de.exlll.configlib.Configuration;
 
 @Configuration
@@ -26,7 +27,7 @@ import de.exlll.configlib.Configuration;
 public class Settings {
 
 
-    public enum Messenger {
+    public enum MessengerType {
         PLUGIN_MESSAGE,
         REDIS
     }
@@ -34,10 +35,11 @@ public class Settings {
     public record RedisSettings(String host, int port, String password) {
     }
 
-    private Messenger messenger = Messenger.PLUGIN_MESSAGE;
-    private RedisSettings redis = new RedisSettings("localhost", 6379, null);
+    @Comment("The messenger to use for sending plugin messages. Options are PLUGIN_MESSAGE or REDIS.")
+    private MessengerType messenger = MessengerType.PLUGIN_MESSAGE;
+    private RedisSettings redis = new RedisSettings("localhost", 6379, "");
 
-    public Messenger getMessenger() {
+    public MessengerType getMessenger() {
         return messenger;
     }
 
