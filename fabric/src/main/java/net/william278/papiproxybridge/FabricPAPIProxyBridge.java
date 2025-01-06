@@ -126,9 +126,10 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
     @Override
     public File getDataFolder() {
         final File folder = FabricLoader.getInstance().getConfigDir().resolve("papiproxybridge").toFile();
-        if (!folder.exists()) {
-            folder.mkdirs();
+        if (!folder.exists() && !folder.mkdirs()) {
+            throw new IllegalStateException("Failed to create data folder");
         }
+
         return folder;
     }
 

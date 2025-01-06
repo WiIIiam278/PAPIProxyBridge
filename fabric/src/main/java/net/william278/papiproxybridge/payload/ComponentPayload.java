@@ -46,5 +46,4 @@ public final class ComponentPayload extends TemplatePayload {
     public Id<? extends CustomPayload> getId() {
         return isRequest ? REQUEST_ID : RESPONSE_ID;
     }
-
 }

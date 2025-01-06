@@ -22,8 +22,6 @@ dependencies {
     mappings "net.fabricmc:yarn:$fabric_yarn_mappings:v2"
     modImplementation "net.fabricmc:fabric-loader:$fabric_loader_version"
 
-//    modImplementation include("net.kyori:adventure-api:4.17.0")
-
     shadow implementation ('io.lettuce:lettuce-core:6.5.2.RELEASE')
     shadow implementation ('de.exlll:configlib-yaml:4.5.0')
 
@@ -57,7 +55,6 @@ remapJar {
 
     destinationDirectory.set(file("$rootDir/target/"))
     archiveClassifier.set('')
-
 }
 
 shadowJar.finalizedBy(remapJar)

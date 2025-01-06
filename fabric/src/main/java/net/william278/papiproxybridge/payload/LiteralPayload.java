@@ -47,9 +47,4 @@ public final class LiteralPayload extends TemplatePayload {
     public Id<? extends CustomPayload> getId() {
         return isRequest ? REQUEST_ID : RESPONSE_ID;
     }
-
-//    public static String getChannel() {
-//        return "papiproxybridge:format";
-//    }
-
 }

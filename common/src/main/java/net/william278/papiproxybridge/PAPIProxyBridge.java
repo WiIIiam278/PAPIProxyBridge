@@ -145,5 +145,4 @@ public interface PAPIProxyBridge {
     Messenger getMessenger();
 
     Settings getSettings();
-
 }

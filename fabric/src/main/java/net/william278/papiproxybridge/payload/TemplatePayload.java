@@ -43,5 +43,4 @@ public abstract class TemplatePayload implements CustomPayload {
     protected static void writeBytes(PacketByteBuf buf, byte[] v) {
         buf.writeBytes(v);
     }
-
 }
