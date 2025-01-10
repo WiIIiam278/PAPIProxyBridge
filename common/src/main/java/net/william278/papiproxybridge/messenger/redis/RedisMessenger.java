@@ -78,6 +78,7 @@ public class RedisMessenger extends Messenger {
                     .withPort(credentials.getPort())
                     .withPassword(credentials.getPassword() == null ? null : credentials.getPassword().toCharArray())
                     .withClientName(CLIENT_NAME)
+                    .withSsl(credentials.isUseSsl())
                     .build());
             return;
         }
@@ -94,7 +95,8 @@ public class RedisMessenger extends Messenger {
             builder.withSentinel(split[0], Integer.parseInt(split[1]));
         });
 
-        builder.withClientName(CLIENT_NAME);
+        builder.withClientName(CLIENT_NAME)
+                .withSsl(credentials.isUseSsl());
         client = RedisClient.create(builder.build());
     }
 
