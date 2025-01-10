@@ -43,6 +43,37 @@ public class Settings {
         REDIS
     }
 
-    public record RedisSettings(String host, int port, String password) {
+    @Getter
+    @Configuration
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class RedisSettings {
+
+        @Comment("Specify the credentials of your Redis server here. Set \"password\" to '' if you don't have one")
+        private RedisCredentials credentials = new RedisCredentials();
+
+        @Getter
+        @Configuration
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class RedisCredentials {
+            private String host = "localhost";
+            private int port = 6379;
+            private String password = "";
+            private boolean useSsl = false;
+        }
+
+        @Comment("Options for if you're using Redis sentinel. Don't modify this unless you know what you're doing!")
+        private RedisSentinel sentinel = new RedisSentinel();
+
+        @Getter
+        @Configuration
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class RedisSentinel {
+            @Comment("The master set name for the Redis sentinel.")
+            private String master = "";
+            @Comment("List of host:port pairs")
+            private List<String> nodes = Lists.newArrayList();
+            private String password = "";
+        }
+
     }
 }
