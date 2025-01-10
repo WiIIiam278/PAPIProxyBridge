@@ -29,6 +29,7 @@ import net.william278.papiproxybridge.messenger.Messenger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class RedisMessenger extends Messenger {
 
@@ -41,9 +42,9 @@ public class RedisMessenger extends Messenger {
     /**
      * Create a new instance of the RedisMessenger
      *
-     * @param plugin the plugin instance
+     * @param plugin        the plugin instance
      * @param redisSettings the redis settings
-     * @param isRequest whether the messenger is for requests (backends) or responses (proxy)
+     * @param isRequest     whether the messenger is for requests (backends) or responses (proxy)
      */
     public RedisMessenger(@NotNull PAPIProxyBridge plugin, @NotNull Settings.RedisSettings redisSettings, boolean isRequest) {
         this.plugin = plugin;
@@ -53,19 +54,52 @@ public class RedisMessenger extends Messenger {
 
     @Override
     public void onEnable() {
-        client = RedisClient.create(RedisURI.builder()
-                .withHost(redisSettings.host())
-                .withPort(redisSettings.port())
-                .withPassword(redisSettings.password() == null ? null : redisSettings.password().toCharArray())
-                .build());
+        try {
+            createClient();
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "Failed to establish connection with Redis. "
+                    + "Please check the supplied credentials in the config file", e);
+            return;
+        }
 
         connection = client.connect(StringByteArrayCodec.INSTANCE);
         listen();
     }
 
+    private void createClient() {
+        final Settings.RedisSettings.RedisCredentials credentials = redisSettings.getCredentials();
+        final Settings.RedisSettings.RedisSentinel sentinel = redisSettings.getSentinel();
+
+        if (sentinel.getNodes().isEmpty()) {
+            client = RedisClient.create(RedisURI.builder()
+                    .withHost(credentials.getHost())
+                    .withPort(credentials.getPort())
+                    .withPassword(credentials.getPassword() == null ? null : credentials.getPassword().toCharArray())
+                    .build());
+            return;
+        }
+
+        plugin.log(Level.INFO, "Connecting with redis sentinel");
+        final RedisURI.Builder builder = RedisURI.builder()
+                .withSentinelMasterId(sentinel.getMaster());
+
+        sentinel.getNodes().forEach(node -> {
+            final String[] split = node.split(":");
+            if (split.length != 2) {
+                throw new IllegalArgumentException("Invalid sentinel node: " + node);
+            }
+            builder.withSentinel(split[0], Integer.parseInt(split[1]));
+        });
+
+        client = RedisClient.create(builder.build());
+    }
+
     @Override
     public void onDisable() {
-        client.close();
+        try {
+            client.close();
+        } catch (Throwable ignored) {
+        }
     }
 
     @Override

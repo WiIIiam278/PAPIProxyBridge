@@ -19,8 +19,14 @@
 
 package net.william278.papiproxybridge.config;
 
+import com.google.common.collect.Lists;
 import de.exlll.configlib.Comment;
 import de.exlll.configlib.Configuration;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Configuration
 @SuppressWarnings({"unused", "FieldMayBeFinal"})
@@ -28,7 +34,7 @@ public class Settings {
 
     @Comment("The messenger to use for sending plugin messages. Options are PLUGIN_MESSAGE or REDIS.")
     private MessengerType messenger = MessengerType.PLUGIN_MESSAGE;
-    private RedisSettings redis = new RedisSettings("localhost", 6379, "");
+    private RedisSettings redis = new RedisSettings();
 
     public MessengerType getMessenger() {
         return messenger;
