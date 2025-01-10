@@ -61,8 +61,8 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     private final Metrics.Factory metricsFactory;
     private final Path configDirectory;
     private final Map<UUID, VelocityUser> velocityUsers;
-    private Settings settings;
     @Setter
+    private Settings settings;
     private Messenger messenger;
 
     @Inject
@@ -168,11 +168,6 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Override
     public Optional<VelocityUser> findPlayer(@NotNull String username) {
         return server.getPlayer(username).map(this::getPlayer);
-    }
-
-    @Override
-    public void setSettings(Settings settings) {
-        this.settings = settings;
     }
 
     @Override

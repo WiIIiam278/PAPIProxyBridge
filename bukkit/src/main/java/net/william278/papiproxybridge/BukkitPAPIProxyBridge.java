@@ -21,6 +21,7 @@ package net.william278.papiproxybridge;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
+import lombok.Setter;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.config.Settings;
 import net.william278.papiproxybridge.messenger.Messenger;
@@ -43,14 +44,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
+@Getter
 public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, Listener {
 
     private Formatter formatter;
     private Map<UUID, BukkitUser> users;
     private Map<String, BukkitUser> usersByName;
+    @Setter
     private Settings settings;
     private Messenger messenger;
-    @Getter
     private ExecutorService executorService;
 
     @Override
@@ -157,26 +159,11 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     }
 
     @Override
-    public void setSettings(Settings settings) {
-        this.settings = settings;
-    }
-
-    @Override
     public void loadMessenger() {
         switch (settings.getMessenger()) {
             case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), true);
             case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
         }
         log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
-    }
-
-    @Override
-    public Messenger getMessenger() {
-        return messenger;
-    }
-
-    @Override
-    public Settings getSettings() {
-        return settings;
     }
 }

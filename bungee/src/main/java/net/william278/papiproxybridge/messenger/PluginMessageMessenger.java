@@ -19,6 +19,7 @@
 
 package net.william278.papiproxybridge.messenger;
 
+import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -30,13 +31,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 public class PluginMessageMessenger extends Messenger implements Listener {
 
     private final BungeePAPIProxyBridge plugin;
-
-    public PluginMessageMessenger(@NotNull BungeePAPIProxyBridge plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public void onEnable() {

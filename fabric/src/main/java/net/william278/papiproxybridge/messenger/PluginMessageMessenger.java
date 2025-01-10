@@ -19,6 +19,7 @@
 
 package net.william278.papiproxybridge.messenger;
 
+import lombok.RequiredArgsConstructor;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.packet.CustomPayload;
@@ -33,13 +34,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 public class PluginMessageMessenger extends Messenger {
 
     private final FabricPAPIProxyBridge plugin;
-
-    public PluginMessageMessenger(@NotNull FabricPAPIProxyBridge plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public void onEnable() {

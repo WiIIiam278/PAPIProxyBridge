@@ -19,6 +19,7 @@
 
 package net.william278.papiproxybridge.messenger;
 
+import lombok.RequiredArgsConstructor;
 import net.william278.papiproxybridge.BukkitPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.bukkit.Bukkit;
@@ -28,13 +29,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+@RequiredArgsConstructor
 public class PluginMessageMessenger extends Messenger implements PluginMessageListener {
 
     private final BukkitPAPIProxyBridge plugin;
-
-    public PluginMessageMessenger(@NotNull BukkitPAPIProxyBridge plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public void onEnable() {

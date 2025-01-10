@@ -24,6 +24,7 @@ import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
+import lombok.RequiredArgsConstructor;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import net.william278.papiproxybridge.VelocityPAPIProxyBridge;
 import net.william278.papiproxybridge.user.VelocityUser;
@@ -33,15 +34,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
+@RequiredArgsConstructor
 public class PluginMessageMessenger extends Messenger {
 
     private final VelocityPAPIProxyBridge plugin;
     private ChannelIdentifier responseChannelIdentifier;
     private ChannelIdentifier responseComponentChannelIdentifier;
-
-    public PluginMessageMessenger(@NotNull VelocityPAPIProxyBridge plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public void onEnable() {

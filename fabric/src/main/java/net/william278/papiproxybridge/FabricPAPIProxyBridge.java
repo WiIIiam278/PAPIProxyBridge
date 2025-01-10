@@ -22,6 +22,8 @@ package net.william278.papiproxybridge;
 import com.google.common.collect.Maps;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
+import lombok.Getter;
+import lombok.Setter;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -42,10 +44,12 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
+@Getter
 public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAPIProxyBridge {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("FabricPAPIProxyBridge");
     private Map<UUID, FabricUser> fabricUsers;
+    @Setter
     private Settings settings;
     private Messenger messenger;
 
@@ -134,11 +138,6 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
     }
 
     @Override
-    public void setSettings(Settings settings) {
-        this.settings = settings;
-    }
-
-    @Override
     public void loadMessenger() {
         switch (settings.getMessenger()) {
             case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), true);
@@ -146,16 +145,6 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
         }
 
         log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
-    }
-
-    @Override
-    public Messenger getMessenger() {
-        return messenger;
-    }
-
-    @Override
-    public Settings getSettings() {
-        return settings;
     }
 
     @NotNull

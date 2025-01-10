@@ -20,6 +20,8 @@
 package net.william278.papiproxybridge;
 
 import com.google.common.collect.Maps;
+import lombok.Getter;
+import lombok.Setter;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -40,10 +42,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 @SuppressWarnings("unused")
+@Getter
 public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridge, Listener {
 
     private ConcurrentMap<UUID, CompletableFuture<String>> requests;
     private Map<UUID, BungeeUser> users;
+    @Setter
     private Settings settings;
     private Messenger messenger;
 
@@ -132,11 +136,6 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     }
 
     @Override
-    public void setSettings(Settings settings) {
-        this.settings = settings;
-    }
-
-    @Override
     public void loadMessenger() {
         switch (settings.getMessenger()) {
             case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), false);
@@ -144,15 +143,5 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
         }
 
         log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
-    }
-
-    @Override
-    public Messenger getMessenger() {
-        return messenger;
-    }
-
-    @Override
-    public Settings getSettings() {
-        return settings;
     }
 }
