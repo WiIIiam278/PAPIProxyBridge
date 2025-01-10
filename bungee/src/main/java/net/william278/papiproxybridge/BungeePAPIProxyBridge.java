@@ -34,6 +34,7 @@ import net.william278.papiproxybridge.messenger.PluginMessageMessenger;
 import net.william278.papiproxybridge.messenger.redis.RedisMessenger;
 import net.william278.papiproxybridge.user.BungeeUser;
 import org.bstats.bungeecord.Metrics;
+import org.bstats.charts.SimplePie;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -66,7 +67,7 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
         PlaceholderAPI.register(this);
 
         // Metrics
-        new Metrics(this, 17879);
+        setupMetrics();
 
         getLogger().info(getLoadMessage());
     }
@@ -96,10 +97,9 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
         PlaceholderAPI.clearCache(event.getPlayer().getUniqueId());
     }
 
-    @Override
-    @NotNull
-    public ConcurrentMap<UUID, CompletableFuture<String>> getRequests() {
-        return requests;
+    private void setupMetrics() {
+        final Metrics metrics = new Metrics(this, 17879);
+        metrics.addCustomChart(new SimplePie("messengerType", () -> getSettings().getMessenger().name()));
     }
 
     @Override
@@ -142,6 +142,6 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
             case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
         }
 
-        log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
+        log(Level.INFO, "Loaded messenger " + settings.getMessenger().name());
     }
 }

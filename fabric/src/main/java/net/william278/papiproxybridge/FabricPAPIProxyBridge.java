@@ -144,7 +144,7 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
             case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
         }
 
-        log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
+        log(Level.INFO, "Loaded messenger " + settings.getMessenger().name());
     }
 
     @NotNull

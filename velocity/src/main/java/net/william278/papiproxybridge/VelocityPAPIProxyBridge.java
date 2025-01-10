@@ -38,6 +38,7 @@ import net.william278.papiproxybridge.messenger.Messenger;
 import net.william278.papiproxybridge.messenger.PluginMessageMessenger;
 import net.william278.papiproxybridge.messenger.redis.RedisMessenger;
 import net.william278.papiproxybridge.user.VelocityUser;
+import org.bstats.charts.SimplePie;
 import org.bstats.velocity.Metrics;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -97,7 +98,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         PlaceholderAPI.register(this);
 
         // Setup metrics
-        metricsFactory.make(this, 17878);
+        setupMetrics();
 
         logger.info(getLoadMessage());
     }
@@ -116,6 +117,11 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     public void onDisconnect(DisconnectEvent event) {
         velocityUsers.remove(event.getPlayer().getUniqueId());
         PlaceholderAPI.clearCache(event.getPlayer().getUniqueId());
+    }
+
+    private void setupMetrics() {
+        final Metrics metrics = metricsFactory.make(this, 17878);
+        metrics.addCustomChart(new SimplePie("messengerType", () -> getSettings().getMessenger().name()));
     }
 
     @Override
@@ -177,6 +183,6 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
             case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
         }
 
-        log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
+        log(Level.INFO, "Loaded messenger " + getSettings().getMessenger().name());
     }
 }

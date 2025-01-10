@@ -31,6 +31,7 @@ import net.william278.papiproxybridge.papi.Formatter;
 import net.william278.papiproxybridge.user.BukkitUser;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -81,7 +82,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         loadOnlinePlayers();
 
         // Metrics
-        new Metrics(this, 17880);
+        setupMetrics();
 
         getLogger().info(getLoadMessage());
     }
@@ -89,6 +90,11 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public void onDisable() {
         messenger.onDisable();
+    }
+
+    private void setupMetrics() {
+        final Metrics metrics = new Metrics(this, 17880);
+        metrics.addCustomChart(new SimplePie("messengerType", () -> getSettings().getMessenger().name()));
     }
 
     private void loadOnlinePlayers() {
@@ -164,6 +170,6 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
             case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), true);
             case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
         }
-        log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
+        log(Level.INFO, "Loaded messenger " + settings.getMessenger().name());
     }
 }

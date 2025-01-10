@@ -123,6 +123,13 @@ public final class PlaceholderAPI {
     @SuppressWarnings("unchecked")
     private static <T> CompletableFuture<T> orTimeoutAsync(CompletableFuture<T> future, long timeout) {
         final CompletableFuture<T> timeoutFuture = new CompletableFuture<>();
+        timeoutFuture.exceptionally(t -> {
+            if (t instanceof CancellationException) {
+                future.cancel(true);
+            }
+            return null;
+        });
+
         SCHEDULER.schedule(() -> {
             final TimeoutException timeoutException = new TimeoutException("Timeout reached");
             timeoutFuture.completeExceptionally(timeoutException);
