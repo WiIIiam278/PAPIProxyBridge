@@ -33,6 +33,8 @@ import java.util.logging.Level;
 
 public class RedisMessenger extends Messenger {
 
+    private static final String CLIENT_NAME = "PAPIProxyBridge";
+
     private final PAPIProxyBridge plugin;
     private final boolean isRequest;
     private final Settings.RedisSettings redisSettings;
@@ -75,6 +77,7 @@ public class RedisMessenger extends Messenger {
                     .withHost(credentials.getHost())
                     .withPort(credentials.getPort())
                     .withPassword(credentials.getPassword() == null ? null : credentials.getPassword().toCharArray())
+                    .withClientName(CLIENT_NAME)
                     .build());
             return;
         }
@@ -91,6 +94,7 @@ public class RedisMessenger extends Messenger {
             builder.withSentinel(split[0], Integer.parseInt(split[1]));
         });
 
+        builder.withClientName(CLIENT_NAME);
         client = RedisClient.create(builder.build());
     }
 
