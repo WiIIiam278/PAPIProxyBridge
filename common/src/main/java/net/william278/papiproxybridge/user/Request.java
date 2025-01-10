@@ -19,23 +19,24 @@
 
 package net.william278.papiproxybridge.user;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+@AllArgsConstructor
+@Getter
 public final class Request {
+
     private final UUID uuid;
     private final UUID formatFor;
+    @Setter
     private String message;
 
     public Request(@NotNull String message, @NotNull UUID formatFor) {
         this.uuid = UUID.randomUUID();
-        this.formatFor = formatFor;
-        this.message = message;
-    }
-
-    private Request(@NotNull UUID uuid, @NotNull UUID formatFor, @NotNull String message) {
-        this.uuid = uuid;
         this.formatFor = formatFor;
         this.message = message;
     }
@@ -57,24 +58,4 @@ public final class Request {
             throw new IllegalArgumentException("Invalid request string (is PAPIProxyBridge up-to-date on all servers and your proxy?): " + string);
         }
     }
-
-    @NotNull
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    @NotNull
-    public UUID getFormatFor() {
-        return formatFor;
-    }
-
-    @NotNull
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(@NotNull String message) {
-        this.message = message;
-    }
-
 }

@@ -33,13 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class FabricUser implements OnlineUser {
-
-    private final ServerPlayerEntity player;
-
-    private FabricUser(@NotNull ServerPlayerEntity player) {
-        this.player = player;
-    }
+public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
 
     @NotNull
     public static FabricUser adapt(@NotNull ServerPlayerEntity player) {
@@ -85,10 +79,5 @@ public class FabricUser implements OnlineUser {
         String response = wantsJson ? GsonComponentSerializer.gson().serialize(transformed) : formatted.getString();
         message.setMessage(response);
         this.sendMessage(plugin, message, wantsJson, false);
-    }
-
-    @NotNull
-    public ServerPlayerEntity getPlayer() {
-        return player;
     }
 }

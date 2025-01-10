@@ -28,14 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public final class BukkitUser implements OnlineUser {
-
-    private final Player player;
-    private boolean justSwitchedServer;
-
-    private BukkitUser(@NotNull Player player) {
-        this.player = player;
-    }
+public record BukkitUser(Player player) implements OnlineUser {
 
     @NotNull
     public static BukkitUser adapt(@NotNull Player player) {
@@ -62,18 +55,9 @@ public final class BukkitUser implements OnlineUser {
         });
     }
 
+    @Override
     @NotNull
-    public Player getPlayer() {
+    public Player player() {
         return player;
     }
-
-    @Override
-    public boolean justSwitchedServer() {
-        return justSwitchedServer;
-    }
-
-    public void setJustSwitchedServer(boolean justSwitchedServer) {
-        this.justSwitchedServer = justSwitchedServer;
-    }
-
 }

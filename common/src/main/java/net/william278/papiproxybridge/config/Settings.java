@@ -28,6 +28,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@Getter
 @Configuration
 @SuppressWarnings({"unused", "FieldMayBeFinal"})
 public class Settings {
@@ -35,14 +36,6 @@ public class Settings {
     @Comment("The messenger to use for sending plugin messages. Options are PLUGIN_MESSAGE or REDIS.")
     private MessengerType messenger = MessengerType.PLUGIN_MESSAGE;
     private RedisSettings redis = new RedisSettings();
-
-    public MessengerType getMessenger() {
-        return messenger;
-    }
-
-    public RedisSettings getRedis() {
-        return redis;
-    }
 
     public enum MessengerType {
         PLUGIN_MESSAGE,

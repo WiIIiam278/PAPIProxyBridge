@@ -19,7 +19,6 @@
 
 package net.william278.papiproxybridge.messenger;
 
-import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
 import net.william278.papiproxybridge.BukkitPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.bukkit.Bukkit;

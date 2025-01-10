@@ -20,7 +20,7 @@
 package net.william278.papiproxybridge;
 
 import com.google.common.collect.Maps;
-import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
+import lombok.Getter;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.config.Settings;
 import net.william278.papiproxybridge.messenger.Messenger;
@@ -50,6 +50,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     private Map<String, BukkitUser> usersByName;
     private Settings settings;
     private Messenger messenger;
+    @Getter
     private ExecutorService executorService;
 
     @Override
@@ -139,18 +140,14 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     @NotNull
     public final CompletableFuture<String> formatPlaceholders(@NotNull UUID formatFor, @NotNull BukkitUser requester, @NotNull String text) {
-        return CompletableFuture.supplyAsync(() -> formatter.formatPlaceholders(formatFor, requester.getPlayer(), text), executorService);
+        return CompletableFuture.supplyAsync(() -> formatter.formatPlaceholders(formatFor, requester.player(), text), executorService);
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         final BukkitUser user = BukkitUser.adapt(event.getPlayer());
-        user.setJustSwitchedServer(true);
         users.put(user.getUniqueId(), user);
         usersByName.put(user.getUsername(), user);
-        EntityScheduler.get(this, user.getPlayer()).runLater(
-                () -> user.setJustSwitchedServer(false),
-                20);
     }
 
     @EventHandler
@@ -181,9 +178,5 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public Settings getSettings() {
         return settings;
-    }
-
-    public ExecutorService getExecutorService() {
-        return executorService;
     }
 }

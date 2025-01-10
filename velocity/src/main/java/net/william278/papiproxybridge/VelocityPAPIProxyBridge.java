@@ -24,13 +24,14 @@ import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
-import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import lombok.Getter;
+import lombok.Setter;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.config.Settings;
 import net.william278.papiproxybridge.messenger.Messenger;
@@ -46,11 +47,11 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 @Plugin(id = "papiproxybridge")
 @SuppressWarnings("unused")
+@Getter
 public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     private final ConcurrentMap<UUID, CompletableFuture<String>> requests;
@@ -61,6 +62,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     private final Path configDirectory;
     private final Map<UUID, VelocityUser> velocityUsers;
     private Settings settings;
+    @Setter
     private Messenger messenger;
 
     @Inject
@@ -80,9 +82,7 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
 
     private void loadPlayer(@NotNull Player player) {
         final VelocityUser user = VelocityUser.adapt(player);
-        user.setJustSwitchedServer(true);
         velocityUsers.put(player.getUniqueId(), user);
-        server.getScheduler().buildTask(this, () -> user.setJustSwitchedServer(false)).delay(2000, TimeUnit.MILLISECONDS).schedule();
     }
 
     @Subscribe
@@ -105,18 +105,6 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     @Subscribe
     public void onProxyShutdown(@NotNull ProxyShutdownEvent event) {
         messenger.onDisable();
-    }
-
-    @Subscribe
-    public void onServerChange(@NotNull ServerConnectedEvent event) {
-        findPlayer(event.getPlayer().getUniqueId()).ifPresent(user -> {
-            final VelocityUser velocityUser = user;
-            velocityUser.setJustSwitchedServer(true);
-
-            server.getScheduler().buildTask(this,
-                            () -> velocityUser.setJustSwitchedServer(false))
-                    .delay(1, TimeUnit.SECONDS).schedule();
-        });
     }
 
     @Subscribe
@@ -182,10 +170,6 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         return server.getPlayer(username).map(this::getPlayer);
     }
 
-    public ProxyServer getServer() {
-        return server;
-    }
-
     @Override
     public void setSettings(Settings settings) {
         this.settings = settings;
@@ -199,19 +183,5 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
         }
 
         log(Level.INFO, "Loaded messenger " + messenger.getClass().getSimpleName());
-    }
-
-    @Override
-    public Messenger getMessenger() {
-        return messenger;
-    }
-
-    @Override
-    public Settings getSettings() {
-        return settings;
-    }
-
-    public void setMessenger(Messenger messenger) {
-        this.messenger = messenger;
     }
 }

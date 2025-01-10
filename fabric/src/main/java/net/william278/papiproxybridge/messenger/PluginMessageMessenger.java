@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class PluginMessageMessenger extends Messenger {
 
@@ -69,6 +68,6 @@ public class PluginMessageMessenger extends Messenger {
                 new ComponentPayload(message, false) :
                 new LiteralPayload(message, false);
         final Packet<?> packet = new CustomPayloadS2CPacket(payload);
-        user.getPlayer().networkHandler.sendPacket(packet);
+        user.player().networkHandler.sendPacket(packet);
     }
 }

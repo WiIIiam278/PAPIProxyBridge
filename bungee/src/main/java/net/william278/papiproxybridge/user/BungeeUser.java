@@ -20,18 +20,11 @@
 package net.william278.papiproxybridge.user;
 
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class BungeeUser implements ProxyUser {
-
-    private final ProxiedPlayer player;
-
-    private BungeeUser(@NotNull ProxiedPlayer player) {
-        this.player = player;
-    }
+public record BungeeUser(ProxiedPlayer player) implements ProxyUser {
 
     @NotNull
     public static BungeeUser adapt(@NotNull ProxiedPlayer player) {
@@ -59,9 +52,5 @@ public class BungeeUser implements ProxyUser {
     @Override
     public boolean isConnected() {
         return player.isConnected();
-    }
-
-    public ProxiedPlayer getPlayer() {
-        return player;
     }
 }

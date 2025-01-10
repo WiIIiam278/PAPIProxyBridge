@@ -162,7 +162,7 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
     public final Text formatPlaceholders(@NotNull UUID formatFor, @NotNull FabricUser requester, @NotNull String text) {
         text = text.replaceAll(HANDSHAKE_PLACEHOLDER, HANDSHAKE_RESPONSE);
         return Placeholders.parseText(Text.of(text), PlaceholderContext.of(
-                findPlayer(formatFor).orElse(requester).getPlayer())
+                findPlayer(formatFor).orElse(requester).player())
         );
     }
 }

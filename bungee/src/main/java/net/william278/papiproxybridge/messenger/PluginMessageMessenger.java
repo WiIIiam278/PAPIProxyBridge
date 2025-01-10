@@ -57,7 +57,7 @@ public class PluginMessageMessenger extends Messenger implements Listener {
         }
 
         final BungeeUser user = optionalBungeeUser.get();
-        final ProxiedPlayer player = user.getPlayer();
+        final ProxiedPlayer player = user.player();
         player.getServer().getInfo().sendData(channel, message);
     }
 

@@ -60,7 +60,7 @@ public class PluginMessageMessenger extends Messenger {
         }
 
         final VelocityUser user = optionalVelocityUser.get();
-        final Player player = user.getPlayer();
+        final Player player = user.player();
         player.getCurrentServer().ifPresent(server -> {
             if (!server.sendPluginMessage(new LegacyChannelIdentifier(channel), message)) {
                 plugin.log(Level.SEVERE, "Failed to send plugin message to " + server.getServerInfo().getName()
