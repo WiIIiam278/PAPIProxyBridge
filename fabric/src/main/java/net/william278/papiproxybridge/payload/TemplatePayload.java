@@ -19,20 +19,16 @@
 
 package net.william278.papiproxybridge.payload;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.CustomPayload;
 
+@Getter
+@RequiredArgsConstructor
 public abstract class TemplatePayload implements CustomPayload {
 
     protected final byte[] bytes;
-
-    public TemplatePayload (byte[] bytes) {
-        this.bytes = bytes;
-    }
-
-    public byte[] getBytes() {
-        return bytes;
-    }
 
     protected static byte[] getWrittenBytes(PacketByteBuf buf) {
         byte[] bs = new byte[buf.readableBytes()];
