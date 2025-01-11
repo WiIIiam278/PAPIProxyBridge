@@ -172,11 +172,6 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     }
 
     @Override
-    public Optional<VelocityUser> findPlayer(@NotNull String username) {
-        return server.getPlayer(username).map(this::getPlayer);
-    }
-
-    @Override
     public void loadMessenger() {
         switch (settings.getMessenger()) {
             case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), false);

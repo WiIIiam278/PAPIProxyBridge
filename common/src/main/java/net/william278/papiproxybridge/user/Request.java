@@ -24,11 +24,16 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.*;
 import java.util.UUID;
 
 @AllArgsConstructor
 @Getter
-public final class Request {
+public final class Request implements Serializable {
+
+    // Use serialVersionUID for compatibility with multiple versions of the plugin
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private final UUID uuid;
     private final UUID formatFor;
@@ -46,16 +51,20 @@ public final class Request {
         return uuid.toString() + formatFor.toString() + message;
     }
 
+    public byte @NotNull [] serialize() throws IOException {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+            objectOutputStream.writeObject(this);
+            objectOutputStream.flush();
+            return byteArrayOutputStream.toByteArray();
+        }
+    }
+
     @NotNull
-    public static Request fromString(@NotNull String string) {
-        try {
-            return new Request(
-                    UUID.fromString(string.substring(0, 36)),
-                    UUID.fromString(string.substring(36, 72)),
-                    string.substring(72)
-            );
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid request string (is PAPIProxyBridge up-to-date on all servers and your proxy?): " + string);
+    public static Request deserialize(byte @NotNull [] data) throws IOException, ClassNotFoundException {
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
+             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
+            return (Request) objectInputStream.readObject();
         }
     }
 }

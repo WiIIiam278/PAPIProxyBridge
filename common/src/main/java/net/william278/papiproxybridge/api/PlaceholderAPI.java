@@ -19,6 +19,7 @@
 
 package net.william278.papiproxybridge.api;
 
+import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import net.jodah.expiringmap.ExpiringMap;
 import net.kyori.adventure.text.Component;
@@ -52,7 +53,7 @@ import java.util.logging.Level;
  */
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
-    private final static Set<PlaceholderAPI> instances = Collections.newSetFromMap(new WeakHashMap<>());
+    private final static Set<PlaceholderAPI> instances = Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
     private static PAPIProxyBridge plugin;
     private final static ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(1, r -> new Thread(r, "PAPIProxyBridge-PlaceholderAPI-ScheduledThread"));
     private final static String PLACEHOLDER_DELIMITER = "%%%-%%%";

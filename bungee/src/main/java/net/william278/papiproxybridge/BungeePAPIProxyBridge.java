@@ -119,14 +119,6 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     }
 
     @Override
-    public Optional<BungeeUser> findPlayer(@NotNull String username) {
-        return users.values()
-                .stream()
-                .filter(user -> user.getUsername().equals(username))
-                .findFirst();
-    }
-
-    @Override
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... exceptions) {
         if (exceptions.length > 0) {
             getLogger().log(level, message, exceptions[0]);

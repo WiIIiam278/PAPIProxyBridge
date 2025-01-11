@@ -50,7 +50,6 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
 
     private Formatter formatter;
     private Map<UUID, BukkitUser> users;
-    private Map<String, BukkitUser> usersByName;
     @Setter
     private Settings settings;
     private Messenger messenger;
@@ -59,7 +58,6 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public void onLoad() {
         users = Maps.newConcurrentMap();
-        usersByName = Maps.newConcurrentMap();
         executorService = Executors.newFixedThreadPool(2);
         // Initialize the formatter
         formatter = new Formatter();
@@ -102,7 +100,6 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         getServer().getOnlinePlayers().forEach(player -> {
             final BukkitUser user = BukkitUser.adapt(player);
             users.put(player.getUniqueId(), user);
-            usersByName.put(user.getUsername(), user);
         });
     }
 
@@ -120,11 +117,6 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public Optional<BukkitUser> findPlayer(@NotNull UUID uuid) {
         return Optional.ofNullable(users.get(uuid));
-    }
-
-    @Override
-    public Optional<BukkitUser> findPlayer(@NotNull String username) {
-        return Optional.ofNullable(usersByName.get(username));
     }
 
     @Override
@@ -155,13 +147,11 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     public void onJoin(PlayerJoinEvent event) {
         final BukkitUser user = BukkitUser.adapt(event.getPlayer());
         users.put(user.getUniqueId(), user);
-        usersByName.put(user.getUsername(), user);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         users.remove(event.getPlayer().getUniqueId());
-        usersByName.remove(event.getPlayer().getName());
     }
 
     @Override

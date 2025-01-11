@@ -28,9 +28,7 @@ import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.Request;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.File;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -94,27 +92,28 @@ public interface PAPIProxyBridge {
 
     Optional<? extends OnlineUser> findPlayer(@NotNull UUID uuid);
 
-    Optional<? extends OnlineUser> findPlayer(@NotNull String username);
-
     default void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message, boolean isRequest) {
         if (!channel.equals(PAPIProxyBridge.getChannel(isRequest)) && !channel.equals(getComponentChannel(isRequest))) {
             return;
         }
 
         final ByteArrayDataInput inputStream = ByteStreams.newDataInput(message);
-        final String username = inputStream.readUTF();
-        final OnlineUser user = plugin.findPlayer(username).orElse(null);
+        final long mostSignificantBits = inputStream.readLong();
+        final long leastSignificantBits = inputStream.readLong();
+        final UUID uuid = new UUID(mostSignificantBits, leastSignificantBits);
+        final OnlineUser user = plugin.findPlayer(uuid).orElse(null);
         if (user == null) {
             return;
         }
 
-        short messageLength = inputStream.readShort();
-        byte[] messageBody = new byte[messageLength];
-        inputStream.readFully(messageBody);
-
-        try (final DataInputStream messageReader = new DataInputStream(new ByteArrayInputStream(messageBody))) {
-            user.handleMessage(plugin, Request.fromString(messageReader.readUTF()), channel.equals(getComponentChannel(isRequest)));
-        } catch (Exception e) {
+        try {
+            final short messageLength = inputStream.readShort();
+            final byte[] messageBody = new byte[messageLength];
+            inputStream.readFully(messageBody);
+            user.handleMessage(plugin, Request.deserialize(messageBody), channel.equals(getComponentChannel(isRequest)));
+        } catch (InvalidClassException e) {
+                plugin.log(Level.SEVERE, "Failed to deserialize request. Is the plugin up-to-date?");
+        } catch (IOException | ClassNotFoundException e) {
             plugin.log(Level.SEVERE, "Failed to fully read plugin message", e);
         }
     }

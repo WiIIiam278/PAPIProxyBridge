@@ -100,14 +100,6 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
     }
 
     @Override
-    public Optional<FabricUser> findPlayer(@NotNull String username) {
-        return fabricUsers.values()
-                .stream()
-                .filter(user -> user.getUsername().equals(username))
-                .findFirst();
-    }
-
-    @Override
     public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor, boolean wantsJson, long requestTimeout) {
         String json = formatPlaceholders(formatFor, (FabricUser) requester, text).getString();
         return CompletableFuture.completedFuture(json);
