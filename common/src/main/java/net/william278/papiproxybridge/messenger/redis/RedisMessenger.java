@@ -40,6 +40,7 @@ public class RedisMessenger extends Messenger {
     private final Settings.RedisSettings redisSettings;
     private RedisClient client;
     private StatefulRedisConnection<String, byte[]> connection;
+    private boolean closed = false;
 
     /**
      * Create a new instance of the RedisMessenger
@@ -105,11 +106,16 @@ public class RedisMessenger extends Messenger {
         try {
             client.close();
         } catch (Throwable ignored) {
+
         }
+        closed = true;
     }
 
     @Override
     public void sendMessage(@NotNull UUID uuid, @NotNull String channel, byte @NotNull [] message) {
+        if (closed) {
+            return;
+        }
         connection.async().publish(channel, message);
     }
 
@@ -118,6 +124,9 @@ public class RedisMessenger extends Messenger {
         pubSubConnection.addListener(new RedisPubSubListener() {
             @Override
             public void message(String string, byte[] bytes) {
+                if (closed) {
+                    return;
+                }
                 plugin.handleMessage(plugin, string, bytes, isRequest);
             }
         });

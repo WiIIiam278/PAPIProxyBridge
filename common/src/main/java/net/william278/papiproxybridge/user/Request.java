@@ -29,11 +29,7 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @Getter
-public final class Request implements Serializable {
-
-    // Use serialVersionUID for compatibility with multiple versions of the plugin
-    @Serial
-    private static final long serialVersionUID = 1L;
+public final class Request {
 
     private final UUID uuid;
     private final UUID formatFor;
@@ -52,19 +48,27 @@ public final class Request implements Serializable {
     }
 
     public byte @NotNull [] serialize() throws IOException {
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
-            objectOutputStream.writeObject(this);
-            objectOutputStream.flush();
-            return byteArrayOutputStream.toByteArray();
-        }
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        final DataOutputStream dataStream = new DataOutputStream(byteStream);
+
+        dataStream.writeLong(uuid.getMostSignificantBits());
+        dataStream.writeLong(uuid.getLeastSignificantBits());
+        dataStream.writeLong(formatFor.getMostSignificantBits());
+        dataStream.writeLong(formatFor.getLeastSignificantBits());
+        dataStream.writeUTF(message);
+
+        return byteStream.toByteArray();
     }
 
     @NotNull
     public static Request deserialize(byte @NotNull [] data) throws IOException, ClassNotFoundException {
-        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
-             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
-            return (Request) objectInputStream.readObject();
-        }
+        final ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
+        final DataInputStream dataStream = new DataInputStream(byteStream);
+
+        final UUID uuid = new UUID(dataStream.readLong(), dataStream.readLong());
+        final UUID formatFor = new UUID(dataStream.readLong(), dataStream.readLong());
+        final String message = dataStream.readUTF();
+
+        return new Request(uuid, formatFor, message);
     }
 }

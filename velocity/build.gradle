@@ -16,13 +16,13 @@ shadowJar {
     relocate 'org.snakeyaml', 'net.william278.papiproxybridge.libraries.snakeyaml'
     relocate 'io.lettuce', 'net.william278.papiproxybridge.libraries.lettuce'
     relocate 'de.exlll', 'net.william278.papiproxybridge.libraries.configlib'
-    relocate 'io.netty', 'net.william278.papiproxybridge.libraries.netty'
     relocate 'org.reactivestreams', 'net.william278.papiproxybridge.libraries.reactivestreams'
     relocate 'reactor', 'net.william278.papiproxybridge.libraries.reactor'
 
     dependencies {
         //noinspection GroovyAssignabilityCheck
         exclude dependency(':slf4j-api')
+        exclude dependency('io.netty:')
     }
 
     minimize()
