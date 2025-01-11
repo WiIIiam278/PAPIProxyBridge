@@ -31,6 +31,8 @@ import java.util.UUID;
 @Getter
 public final class Request {
 
+    private static final short VERSION = 1;
+
     private final UUID uuid;
     private final UUID formatFor;
     @Setter
@@ -51,6 +53,7 @@ public final class Request {
         final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         final DataOutputStream dataStream = new DataOutputStream(byteStream);
 
+        dataStream.writeShort(VERSION);
         dataStream.writeLong(uuid.getMostSignificantBits());
         dataStream.writeLong(uuid.getLeastSignificantBits());
         dataStream.writeLong(formatFor.getMostSignificantBits());
@@ -65,6 +68,10 @@ public final class Request {
         final ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
         final DataInputStream dataStream = new DataInputStream(byteStream);
 
+        final short version = dataStream.readShort();
+        if (version != VERSION) {
+            throw new IllegalStateException("Invalid version: " + version + ". Make sure you are using the latest version of PapiProxyBridge on all servers.");
+        }
         final UUID uuid = new UUID(dataStream.readLong(), dataStream.readLong());
         final UUID formatFor = new UUID(dataStream.readLong(), dataStream.readLong());
         final String message = dataStream.readUTF();

@@ -111,7 +111,7 @@ public interface PAPIProxyBridge {
             final byte[] messageBody = new byte[messageLength];
             inputStream.readFully(messageBody);
             user.handleMessage(plugin, Request.deserialize(messageBody), channel.equals(getComponentChannel(isRequest)));
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException | IllegalStateException e) {
             plugin.log(Level.SEVERE, "Failed to fully read plugin message. Is PAPIProxyBridge up-to-date and installed on all servers?", e);
         }
     }
