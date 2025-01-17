@@ -20,22 +20,11 @@
 package net.william278.papiproxybridge.user;
 
 import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
-import net.william278.papiproxybridge.PAPIProxyBridge;
-import net.william278.papiproxybridge.VelocityPAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
-import java.util.logging.Level;
 
-public class VelocityUser implements ProxyUser {
-
-    private final Player player;
-    private boolean justSwitchedServer;
-
-    private VelocityUser(@NotNull Player player) {
-        this.player = player;
-    }
+public record VelocityUser(@NotNull Player player) implements ProxyUser {
 
     @NotNull
     public static VelocityUser adapt(@NotNull Player player) {
@@ -55,31 +44,11 @@ public class VelocityUser implements ProxyUser {
     }
 
     @Override
-    public void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
-        player.getCurrentServer().ifPresent(server -> {
-            if (!server.sendPluginMessage(new LegacyChannelIdentifier(channel), message)) {
-                plugin.log(Level.SEVERE, "Failed to send plugin message to " + server.getServerInfo().getName()
-                                         + " for player " + player.getUsername() + " on channel "
-                                         + channel);
-            }
-        });
-    }
-
-    @Override
     @NotNull
     public String getServerName() {
         return player.getCurrentServer()
                 .map(serverConnection -> serverConnection.getServerInfo().getName())
                 .orElse("unknown");
-    }
-
-    @Override
-    public boolean justSwitchedServer() {
-        return justSwitchedServer;
-    }
-
-    public void setJustSwitchedServer(boolean justSwitchedServer) {
-        this.justSwitchedServer = justSwitchedServer;
     }
 
     @Override

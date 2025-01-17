@@ -24,27 +24,27 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
+import net.william278.papiproxybridge.PAPIProxyBridge;
 
 public final class LiteralPayload extends TemplatePayload {
 
-    public static final Id<LiteralPayload> ID = new Id<>(Identifier.of("papiproxybridge", "format"));
+    public static final Id<LiteralPayload> REQUEST_ID = new Id<>(Identifier.of(PAPIProxyBridge.getChannel(true)));
+    public static final Id<LiteralPayload> RESPONSE_ID = new Id<>(Identifier.of(PAPIProxyBridge.getChannel(false)));
     public static final PacketCodec<RegistryByteBuf, LiteralPayload> CODEC = PacketCodec.of((value, buf) -> writeBytes(buf, value.bytes), LiteralPayload::new);
 
-    public LiteralPayload(byte[] bytes) {
+    private final boolean isRequest;
+
+    public LiteralPayload(byte[] bytes, boolean isRequest) {
         super(bytes);
+        this.isRequest = isRequest;
     }
 
     private LiteralPayload(PacketByteBuf buf) {
-        this(getWrittenBytes(buf));
+        this(getWrittenBytes(buf), true);
     }
 
     @Override
     public Id<? extends CustomPayload> getId() {
-        return ID;
+        return isRequest ? REQUEST_ID : RESPONSE_ID;
     }
-
-    public static String getChannel() {
-        return "papiproxybridge:format";
-    }
-
 }

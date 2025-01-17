@@ -3,6 +3,8 @@ dependencies {
     implementation project(path: ':common')
 
     implementation 'org.bstats:bstats-velocity:3.1.0'
+    implementation 'io.lettuce:lettuce-core:6.5.2.RELEASE'
+    implementation 'de.exlll:configlib-yaml:4.5.0'
 
     compileOnly 'com.velocitypowered:velocity-api:3.4.0-SNAPSHOT'
     compileOnly 'org.jetbrains:annotations:26.0.1'
@@ -11,10 +13,16 @@ dependencies {
 shadowJar {
     relocate 'net.jodah', 'net.william278.papiproxybridge.libraries'
     relocate 'org.bstats', 'net.william278.papiproxybridge.libraries.bstats'
+    relocate 'org.snakeyaml', 'net.william278.papiproxybridge.libraries.snakeyaml'
+    relocate 'io.lettuce', 'net.william278.papiproxybridge.libraries.lettuce'
+    relocate 'de.exlll', 'net.william278.papiproxybridge.libraries.configlib'
+    relocate 'org.reactivestreams', 'net.william278.papiproxybridge.libraries.reactivestreams'
+    relocate 'reactor', 'net.william278.papiproxybridge.libraries.reactor'
 
     dependencies {
         //noinspection GroovyAssignabilityCheck
         exclude dependency(':slf4j-api')
+        exclude dependency('io.netty:')
     }
 
     minimize()

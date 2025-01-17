@@ -20,44 +20,55 @@
 package net.william278.papiproxybridge;
 
 import com.google.common.collect.Maps;
-import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
+import lombok.Getter;
+import lombok.Setter;
 import net.william278.papiproxybridge.api.PlaceholderAPI;
+import net.william278.papiproxybridge.config.Settings;
+import net.william278.papiproxybridge.messenger.Messenger;
+import net.william278.papiproxybridge.messenger.PluginMessageMessenger;
+import net.william278.papiproxybridge.messenger.redis.RedisMessenger;
 import net.william278.papiproxybridge.papi.Formatter;
 import net.william278.papiproxybridge.user.BukkitUser;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.entity.Player;
+import org.bstats.charts.SimplePie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
-public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, PluginMessageListener, Listener {
+@Getter
+public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge, Listener {
 
     private Formatter formatter;
     private Map<UUID, BukkitUser> users;
+    @Setter
+    private Settings settings;
+    private Messenger messenger;
+    private ExecutorService executorService;
 
     @Override
     public void onLoad() {
         users = Maps.newConcurrentMap();
+        executorService = Executors.newFixedThreadPool(2);
         // Initialize the formatter
         formatter = new Formatter();
     }
 
     @Override
     public void onEnable() {
+        loadConfig();
+        loadMessenger();
+        messenger.onEnable();
         // Register the plugin message channel
-        getServer().getMessenger().registerOutgoingPluginChannel(this, getChannel());
-        getServer().getMessenger().registerOutgoingPluginChannel(this, getComponentChannel());
-        getServer().getMessenger().registerIncomingPluginChannel(this, getChannel(), this);
-        getServer().getMessenger().registerIncomingPluginChannel(this, getComponentChannel(), this);
 
         // Register the plugin with the API
         PlaceholderAPI.register(this);
@@ -69,21 +80,27 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         loadOnlinePlayers();
 
         // Metrics
-        new Metrics(this, 17880);
+        setupMetrics();
 
         getLogger().info(getLoadMessage());
     }
 
     @Override
     public void onDisable() {
-        // Unregister the plugin message channel
-        getServer().getMessenger().unregisterOutgoingPluginChannel(this);
-        getServer().getMessenger().unregisterIncomingPluginChannel(this);
+        messenger.onDisable();
+    }
+
+    private void setupMetrics() {
+        final Metrics metrics = new Metrics(this, 17880);
+        metrics.addCustomChart(new SimplePie("messengerType", () -> getSettings().getMessenger().name()));
     }
 
     private void loadOnlinePlayers() {
         users.clear();
-        getServer().getOnlinePlayers().forEach(player -> users.put(player.getUniqueId(), BukkitUser.adapt(player)));
+        getServer().getOnlinePlayers().forEach(player -> {
+            final BukkitUser user = BukkitUser.adapt(player);
+            users.put(player.getUniqueId(), user);
+        });
     }
 
     @Override
@@ -100,13 +117,6 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public Optional<BukkitUser> findPlayer(@NotNull UUID uuid) {
         return Optional.ofNullable(users.get(uuid));
-    }
-
-    @Override
-    public Optional<BukkitUser> findPlayer(@NotNull String username) {
-        return users.values().stream()
-                .filter(user -> user.getPlayer().getName().equals(username))
-                .findFirst();
     }
 
     @Override
@@ -128,28 +138,15 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         }
     }
 
-    @Override
-    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte[] message) {
-        this.handlePluginMessage(this, channel, message);
-    }
-
     @NotNull
     public final CompletableFuture<String> formatPlaceholders(@NotNull UUID formatFor, @NotNull BukkitUser requester, @NotNull String text) {
-        final CompletableFuture<String> future = new CompletableFuture<>();
-        EntityScheduler.get(this, requester.getPlayer()).runLater(
-                () -> future.complete(formatter.formatPlaceholders(formatFor, requester.getPlayer(), text)),
-                requester.justSwitchedServer() ? 2 : 1);
-        return future;
+        return CompletableFuture.supplyAsync(() -> formatter.formatPlaceholders(formatFor, requester.player(), text), executorService);
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         final BukkitUser user = BukkitUser.adapt(event.getPlayer());
-        user.setJustSwitchedServer(true);
         users.put(user.getUniqueId(), user);
-        EntityScheduler.get(this, user.getPlayer()).runLater(
-                () -> user.setJustSwitchedServer(false),
-                20);
     }
 
     @EventHandler
@@ -157,4 +154,12 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
         users.remove(event.getPlayer().getUniqueId());
     }
 
+    @Override
+    public void loadMessenger() {
+        switch (settings.getMessenger()) {
+            case REDIS -> messenger = new RedisMessenger(this, settings.getRedis(), true);
+            case PLUGIN_MESSAGE -> messenger = new PluginMessageMessenger(this);
+        }
+        log(Level.INFO, "Loaded messenger " + settings.getMessenger().name());
+    }
 }

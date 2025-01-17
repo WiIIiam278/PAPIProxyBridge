@@ -19,11 +19,13 @@
 
 package net.william278.papiproxybridge.api;
 
+import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import net.jodah.expiringmap.ExpiringMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.william278.papiproxybridge.PAPIProxyBridge;
+import net.william278.papiproxybridge.config.Settings;
 import net.william278.papiproxybridge.user.OnlineUser;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +53,7 @@ import java.util.logging.Level;
  */
 @SuppressWarnings("unused")
 public final class PlaceholderAPI {
-    private final static Set<PlaceholderAPI> instances = Collections.newSetFromMap(new WeakHashMap<>());
+    private final static Set<PlaceholderAPI> instances = Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
     private static PAPIProxyBridge plugin;
     private final static ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(1, r -> new Thread(r, "PAPIProxyBridge-PlaceholderAPI-ScheduledThread"));
     private final static String PLACEHOLDER_DELIMITER = "%%%-%%%";
@@ -60,6 +62,7 @@ public final class PlaceholderAPI {
     private long requestTimeout = 1000;
     private long cacheExpiry = 30000;
     private int retryTimes = 3;
+    private long lastError = 0;
 
     /**
      * <b>Internal only</b> - Create a new instance of the API
@@ -118,14 +121,21 @@ public final class PlaceholderAPI {
         });
     }
 
-
-    private static <T> CompletableFuture<T> orTimeoutAsync(CompletableFuture<T> future, long timeout, @NotNull TimeUnit unit) {
+    @SuppressWarnings("unchecked")
+    private static <T> CompletableFuture<T> orTimeoutAsync(CompletableFuture<T> future, long timeout) {
         final CompletableFuture<T> timeoutFuture = new CompletableFuture<>();
+        timeoutFuture.exceptionally(t -> {
+            if (t instanceof CancellationException) {
+                future.cancel(true);
+            }
+            return null;
+        });
+
         SCHEDULER.schedule(() -> {
             final TimeoutException timeoutException = new TimeoutException("Timeout reached");
             timeoutFuture.completeExceptionally(timeoutException);
             future.completeExceptionally(timeoutException);
-        }, timeout, unit);
+        }, timeout, TimeUnit.MILLISECONDS);
         return CompletableFuture.anyOf(future, timeoutFuture).thenApply(o -> (T) o);
     }
 
@@ -155,7 +165,7 @@ public final class PlaceholderAPI {
             return CompletableFuture.completedFuture(cache.get(formatFor).get(text));
         }
         final CompletableFuture<String> future = plugin.createRequest(text, requester, formatFor, false, requestTimeout);
-        return orTimeoutAsync(future, requestTimeout, TimeUnit.MILLISECONDS).thenApply(formatted -> {
+        return orTimeoutAsync(future, requestTimeout).thenApply(formatted -> {
             cache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
                             .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
                             .build())
@@ -163,6 +173,10 @@ public final class PlaceholderAPI {
             return formatted;
         }).exceptionally(e -> {
             if (!requester.isConnected()) {
+                return text;
+            }
+
+            if (checkLastError()) {
                 return text;
             }
 
@@ -251,7 +265,7 @@ public final class PlaceholderAPI {
             return CompletableFuture.completedFuture(componentCache.get(formatFor).get(text));
         }
         final CompletableFuture<String> future = plugin.createRequest(text, requester, formatFor, true, requestTimeout);
-        return orTimeoutAsync(future, requestTimeout, TimeUnit.MILLISECONDS).thenApply(formatted -> {
+        return orTimeoutAsync(future, requestTimeout).thenApply(formatted -> {
             final Component deserialized = GsonComponentSerializer.gson().deserializeOr(formatted, Component.text(formatted));
             componentCache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
                             .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
@@ -260,6 +274,10 @@ public final class PlaceholderAPI {
             return deserialized;
         }).exceptionally(e -> {
             if (!requester.isConnected()) {
+                return Component.text(text);
+            }
+
+            if (checkLastError()) {
                 return Component.text(text);
             }
 
@@ -428,5 +446,24 @@ public final class PlaceholderAPI {
      */
     public int getRetryTimes() {
         return retryTimes;
+    }
+
+    /**
+     * Returns the messenger type
+     *
+     * @return The messenger type
+     * @since 1.7.3
+     */
+    public Settings.MessengerType getMessengerType() {
+        return plugin.getSettings().getMessenger();
+    }
+
+    private boolean checkLastError() {
+        if (System.currentTimeMillis() - lastError < 10000) {
+            return true;
+        }
+
+        lastError = System.currentTimeMillis();
+        return false;
     }
 }

@@ -24,8 +24,6 @@ import com.google.common.io.ByteStreams;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -38,32 +36,25 @@ public interface OnlineUser {
     @NotNull
     UUID getUniqueId();
 
-    void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message);
-
-    default void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request, boolean wantsJson) {
+    default void sendMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request, boolean wantsJson, boolean isRequest) {
         final ByteArrayDataOutput messageWriter = ByteStreams.newDataOutput();
-        messageWriter.writeUTF(getUsername()); // Username
+        final UUID uuid = getUniqueId();
+        messageWriter.writeLong(uuid.getMostSignificantBits()); // UUID - Most Significant Bits
+        messageWriter.writeLong(uuid.getLeastSignificantBits()); // UUID - Least Significant Bits
 
-        // Write the plugin message
-        try (final ByteArrayOutputStream messageByteStream = new ByteArrayOutputStream()) {
-            try (DataOutputStream messageDataStream = new DataOutputStream(messageByteStream)) {
-                messageDataStream.writeUTF(request.toString());
-                messageWriter.writeShort(messageByteStream.toByteArray().length);
-                messageWriter.write(messageByteStream.toByteArray());
-            }
+        try {
+            final byte[] serializedRequest = request.serialize();
+            messageWriter.writeShort(serializedRequest.length);
+            messageWriter.write(serializedRequest);
         } catch (IOException e) {
-            plugin.log(Level.SEVERE, "Exception dispatching plugin message", e);
+            plugin.log(Level.SEVERE, "Exception serializing request: " + request, e);
             return;
         }
 
-        this.sendPluginMessage(plugin, wantsJson ? plugin.getComponentChannel() : plugin.getChannel(), messageWriter.toByteArray());
+        plugin.getMessenger().sendMessage(request.getFormatFor(), wantsJson ? PAPIProxyBridge.getComponentChannel(isRequest) : PAPIProxyBridge.getChannel(isRequest), messageWriter.toByteArray());
     }
 
-    void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson);
-
-    default boolean justSwitchedServer() {
-        return false;
-    }
+    void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson);
 
     default boolean isConnected() {
         return true;

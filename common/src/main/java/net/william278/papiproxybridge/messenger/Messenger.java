@@ -17,40 +17,22 @@
  *  limitations under the License.
  */
 
-package net.william278.papiproxybridge.user;
+package net.william278.papiproxybridge.messenger;
 
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record BungeeUser(ProxiedPlayer player) implements ProxyUser {
+public abstract class Messenger {
 
-    @NotNull
-    public static BungeeUser adapt(@NotNull ProxiedPlayer player) {
-        return new BungeeUser(player);
+    public void onEnable() {
+
     }
 
-    @Override
-    @NotNull
-    public String getUsername() {
-        return player.getName();
+    public void onDisable() {
+
     }
 
-    @Override
-    @NotNull
-    public UUID getUniqueId() {
-        return player.getUniqueId();
-    }
+    public abstract void sendMessage(@NotNull UUID uuid, @NotNull String channel, byte @NotNull [] message);
 
-    @Override
-    @NotNull
-    public String getServerName() {
-        return player.getServer().getInfo().getName();
-    }
-
-    @Override
-    public boolean isConnected() {
-        return player.isConnected();
-    }
 }

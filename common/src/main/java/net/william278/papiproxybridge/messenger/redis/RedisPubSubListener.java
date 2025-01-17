@@ -17,40 +17,32 @@
  *  limitations under the License.
  */
 
-package net.william278.papiproxybridge.user;
+package net.william278.papiproxybridge.messenger.redis;
 
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import org.jetbrains.annotations.NotNull;
+public abstract class RedisPubSubListener implements io.lettuce.core.pubsub.RedisPubSubListener<String, byte[]> {
 
-import java.util.UUID;
+    @Override
+    public void message(String string, String k1, byte[] bytes) {
 
-public record BungeeUser(ProxiedPlayer player) implements ProxyUser {
-
-    @NotNull
-    public static BungeeUser adapt(@NotNull ProxiedPlayer player) {
-        return new BungeeUser(player);
     }
 
     @Override
-    @NotNull
-    public String getUsername() {
-        return player.getName();
+    public void subscribed(String string, long l) {
+
     }
 
     @Override
-    @NotNull
-    public UUID getUniqueId() {
-        return player.getUniqueId();
+    public void psubscribed(String string, long l) {
+
     }
 
     @Override
-    @NotNull
-    public String getServerName() {
-        return player.getServer().getInfo().getName();
+    public void unsubscribed(String string, long l) {
+
     }
 
     @Override
-    public boolean isConnected() {
-        return player.isConnected();
+    public void punsubscribed(String string, long l) {
+
     }
 }

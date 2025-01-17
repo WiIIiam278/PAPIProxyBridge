@@ -7,3 +7,6 @@ main: 'net.william278.papiproxybridge.BukkitPAPIProxyBridge'
 api-version: 1.16
 folia-supported: true
 depend: [ PlaceholderAPI ]
+libraries:
+  - 'io.lettuce:lettuce-core:6.5.2.RELEASE'
+  - 'de.exlll:configlib-yaml:4.5.0'

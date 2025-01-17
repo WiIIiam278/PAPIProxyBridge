@@ -19,23 +19,27 @@
 
 package net.william278.papiproxybridge.user;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.*;
 import java.util.UUID;
 
+@AllArgsConstructor
+@Getter
 public final class Request {
+
+    private static final short VERSION = 1;
+
     private final UUID uuid;
     private final UUID formatFor;
+    @Setter
     private String message;
 
     public Request(@NotNull String message, @NotNull UUID formatFor) {
         this.uuid = UUID.randomUUID();
-        this.formatFor = formatFor;
-        this.message = message;
-    }
-
-    private Request(@NotNull UUID uuid, @NotNull UUID formatFor, @NotNull String message) {
-        this.uuid = uuid;
         this.formatFor = formatFor;
         this.message = message;
     }
@@ -45,36 +49,33 @@ public final class Request {
         return uuid.toString() + formatFor.toString() + message;
     }
 
+    public byte @NotNull [] serialize() throws IOException {
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        final DataOutputStream dataStream = new DataOutputStream(byteStream);
+
+        dataStream.writeShort(VERSION);
+        dataStream.writeLong(uuid.getMostSignificantBits());
+        dataStream.writeLong(uuid.getLeastSignificantBits());
+        dataStream.writeLong(formatFor.getMostSignificantBits());
+        dataStream.writeLong(formatFor.getLeastSignificantBits());
+        dataStream.writeUTF(message);
+
+        return byteStream.toByteArray();
+    }
+
     @NotNull
-    public static Request fromString(@NotNull String string) {
-        try {
-            return new Request(
-                    UUID.fromString(string.substring(0, 36)),
-                    UUID.fromString(string.substring(36, 72)),
-                    string.substring(72)
-            );
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid request string (is PAPIProxyBridge up-to-date on all servers and your proxy?): " + string);
+    public static Request deserialize(byte @NotNull [] data) throws IOException, ClassNotFoundException {
+        final ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
+        final DataInputStream dataStream = new DataInputStream(byteStream);
+
+        final short version = dataStream.readShort();
+        if (version != VERSION) {
+            throw new IllegalStateException("Invalid version: " + version + ". Make sure you are using the latest version of PapiProxyBridge on all servers.");
         }
-    }
+        final UUID uuid = new UUID(dataStream.readLong(), dataStream.readLong());
+        final UUID formatFor = new UUID(dataStream.readLong(), dataStream.readLong());
+        final String message = dataStream.readUTF();
 
-    @NotNull
-    public UUID getUuid() {
-        return uuid;
+        return new Request(uuid, formatFor, message);
     }
-
-    @NotNull
-    public UUID getFormatFor() {
-        return formatFor;
-    }
-
-    @NotNull
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(@NotNull String message) {
-        this.message = message;
-    }
-
 }

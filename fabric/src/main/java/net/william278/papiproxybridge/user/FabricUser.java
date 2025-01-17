@@ -22,30 +22,18 @@ package net.william278.papiproxybridge.user;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Language;
 import net.william278.papiproxybridge.FabricPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
-import net.william278.papiproxybridge.payload.ComponentPayload;
-import net.william278.papiproxybridge.payload.LiteralPayload;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class FabricUser implements OnlineUser {
-
-    private final ServerPlayerEntity player;
-
-    private FabricUser(@NotNull ServerPlayerEntity player) {
-        this.player = player;
-    }
+public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
 
     @NotNull
     public static FabricUser adapt(@NotNull ServerPlayerEntity player) {
@@ -64,16 +52,6 @@ public class FabricUser implements OnlineUser {
         return player.getUuid();
     }
 
-    @Override
-    public void sendPluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull String channel, byte[] message) {
-        final CustomPayload payload = channel.equals(ComponentPayload.getChannel()) ?
-                new ComponentPayload(message) :
-                new LiteralPayload(message);
-        final Packet<?> packet = new CustomPayloadS2CPacket(payload);
-        player.networkHandler.sendPacket(packet);
-    }
-
-
     private Component getComponent(Text text) {
         return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonString(text, new DynamicRegistryManager.ImmutableImpl(List.of())));
     }
@@ -88,7 +66,7 @@ public class FabricUser implements OnlineUser {
     }
 
     @Override
-    public void handlePluginMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
+    public void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
         FabricPAPIProxyBridge bridge = (FabricPAPIProxyBridge) plugin;
         Text formatted = bridge.formatPlaceholders(message.getFormatFor(), this, message.getMessage());
         Component original = getComponent(formatted);
@@ -100,11 +78,6 @@ public class FabricUser implements OnlineUser {
         }).collect(Component.toComponent()).mergeStyle(original);
         String response = wantsJson ? GsonComponentSerializer.gson().serialize(transformed) : formatted.getString();
         message.setMessage(response);
-        this.sendPluginMessage(plugin, message, wantsJson);
-    }
-
-    @NotNull
-    public PlayerEntity getPlayer() {
-        return player;
+        this.sendMessage(plugin, message, wantsJson, false);
     }
 }
