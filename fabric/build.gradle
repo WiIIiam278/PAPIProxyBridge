@@ -29,7 +29,7 @@ dependencies {
     modCompileOnly "eu.pb4:placeholder-api:2.3.0+"
     modImplementation include("net.kyori:adventure-platform-fabric:6.2.0")
 
-    compileOnly "net.kyori:adventure-text-serializer-gson:4.17.0"
+    compileOnly "net.kyori:adventure-text-serializer-gson:4.18.0"
 
     shadow project(path: ":common")
 }
