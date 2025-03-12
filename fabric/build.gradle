@@ -22,7 +22,7 @@ dependencies {
     mappings "net.fabricmc:yarn:$fabric_yarn_mappings:v2"
     modImplementation "net.fabricmc:fabric-loader:$fabric_loader_version"
 
-    shadow implementation ('io.lettuce:lettuce-core:6.5.3.RELEASE')
+    shadow implementation ('io.lettuce:lettuce-core:6.5.5.RELEASE')
     shadow implementation ('de.exlll:configlib-yaml:4.5.0')
 
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
