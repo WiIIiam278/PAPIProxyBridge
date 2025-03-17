@@ -4,7 +4,7 @@ dependencies {
 
     implementation 'org.bstats:bstats-bungeecord:3.1.0'
     implementation 'net.kyori:adventure-platform-bungeecord:4.3.4'
-    implementation 'io.lettuce:lettuce-core:6.5.3.RELEASE'
+    implementation 'io.lettuce:lettuce-core:6.5.5.RELEASE'
     implementation 'de.exlll:configlib-yaml:4.5.0'
 
     compileOnly 'net.md-5:bungeecord-api:1.16-R0.5-SNAPSHOT'
