@@ -8,7 +8,7 @@ dependencies {
     implementation 'de.exlll:configlib-yaml:4.5.0'
 
     compileOnly 'net.md-5:bungeecord-api:1.16-R0.5-SNAPSHOT'
-    compileOnly 'org.jetbrains:annotations:26.0.1'
+    compileOnly 'org.jetbrains:annotations:26.0.2'
 }
 
 shadowJar {
