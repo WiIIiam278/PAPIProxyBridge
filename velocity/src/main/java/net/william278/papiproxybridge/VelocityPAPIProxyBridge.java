@@ -23,7 +23,7 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
-import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
@@ -109,12 +109,16 @@ public class VelocityPAPIProxyBridge implements ProxyPAPIProxyBridge {
     }
 
     @Subscribe
-    public void onConnect(LoginEvent event) {
+    public void onConnect(PostLoginEvent event) {
         loadPlayer(event.getPlayer());
     }
 
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
+        if (event.getLoginStatus() == DisconnectEvent.LoginStatus.CONFLICTING_LOGIN) {
+            return;
+        }
+
         velocityUsers.remove(event.getPlayer().getUniqueId());
         PlaceholderAPI.clearCache(event.getPlayer().getUniqueId());
     }
