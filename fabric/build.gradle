@@ -1,37 +1,36 @@
 plugins {
-    id 'fabric-loom' version "$fabric_loom_version"
+    id 'gg.essential.multi-version'
+    id 'gg.essential.defaults'
 }
 
-apply plugin: 'fabric-loom'
 loom.serverOnlyMinecraftJar()
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-        sourceCompatibility = JavaLanguageVersion.of(21)
-    }
-}
-
 repositories {
-    mavenCentral()
+    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
     maven { url 'https://maven.nucleoid.xyz' } // PlaceholderAPI
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:$fabric_minecraft_version"
-    mappings "net.fabricmc:yarn:$fabric_yarn_mappings:v2"
-    modImplementation "net.fabricmc:fabric-loader:$fabric_loader_version"
-
     shadow implementation ('io.lettuce:lettuce-core:6.5.5.RELEASE')
     shadow implementation ('de.exlll:configlib-yaml:4.5.0')
 
-    modCompileOnly "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
-    modCompileOnly "eu.pb4:placeholder-api:2.3.0+"
-    modImplementation include("net.kyori:adventure-platform-fabric:6.2.0")
+    modImplementation include("net.kyori:adventure-platform-fabric:${fabric_adventure_platform_version}")
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    modImplementation include("eu.pb4:placeholder-api:${fabric_placeholder_api_version}")
 
     compileOnly "net.kyori:adventure-text-serializer-gson:4.19.0"
 
     shadow project(path: ":common")
+}
+
+processResources {
+    filesMatching(Arrays.asList("fabric.mod.json")) {
+        expand([
+                version: version,
+                fabric_loader_version: fabric_loader_version,
+                fabric_minecraft_version: project.name,
+        ])
+    }
 }
 
 shadowJar {
@@ -46,7 +45,6 @@ shadowJar {
     relocate 'org.snakeyaml', 'net.william278.papiproxybridge.libraries.snakeyaml'
     relocate 'io.lettuce', 'net.william278.papiproxybridge.libraries.lettuce'
     relocate 'de.exlll', 'net.william278.papiproxybridge.libraries.configlib'
-    relocate 'io.netty', 'net.william278.papiproxybridge.libraries.netty'
     relocate 'org.reactivestreams', 'net.william278.papiproxybridge.libraries.reactivestreams'
     relocate 'reactor', 'net.william278.papiproxybridge.libraries.reactor'
 

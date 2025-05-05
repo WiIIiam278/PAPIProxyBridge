@@ -2,6 +2,12 @@ plugins {
     id 'java-library'
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 dependencies {
     api 'net.jodah:expiringmap:0.5.11'
 
