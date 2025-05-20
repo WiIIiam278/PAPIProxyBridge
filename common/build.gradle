@@ -17,5 +17,5 @@ dependencies {
     compileOnly 'net.kyori:adventure-api:4.19.0'
     compileOnly "net.kyori:adventure-text-serializer-gson:4.19.0"
     compileOnly 'io.lettuce:lettuce-core:6.5.5.RELEASE'
-    compileOnly 'de.exlll:configlib-yaml:4.5.0'
+    compileOnly 'de.exlll:configlib-yaml:4.6.1'
 }
