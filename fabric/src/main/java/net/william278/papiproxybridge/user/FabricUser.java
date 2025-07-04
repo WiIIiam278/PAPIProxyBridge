@@ -53,7 +53,11 @@ public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
     }
 
     private Component getComponent(Text text) {
-        return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonString(text, new DynamicRegistryManager.ImmutableImpl(List.of())));
+//#if MC>=12107
+        return (Component) text;
+//#else
+//$$      return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonString(text, new DynamicRegistryManager.ImmutableImpl(List.of())));
+//#endif
     }
 
     private Component translateKeys(TranslatableComponent translatable) {

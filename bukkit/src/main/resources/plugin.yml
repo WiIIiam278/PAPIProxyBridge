@@ -9,4 +9,4 @@ folia-supported: true
 depend: [ PlaceholderAPI ]
 libraries:
   - 'io.lettuce:lettuce-core:6.5.2.RELEASE'
-  - 'de.exlll:configlib-yaml:4.5.0'
+  - 'de.exlll:configlib-yaml:4.6.1'

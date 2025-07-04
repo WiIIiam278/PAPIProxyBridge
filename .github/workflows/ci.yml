@@ -59,10 +59,12 @@ jobs:
             fabric-1.21.1
             fabric-1.21.4
             fabric-1.21.5
+            fabric-1.21.7
             velocity
             bungeecord
           distro-groups: |
             spigot
+            fabric
             fabric
             fabric
             fabric
@@ -75,6 +77,7 @@ jobs:
             Fabric 1.21.1
             Fabric 1.21.4
             Fabric 1.21.5
+            Fabric 1.21.7
             Velocity
             BungeeCord
           files: |
@@ -83,6 +86,7 @@ jobs:
             target/PAPIProxyBridge-Fabric-${{ env.version_name }}+mc.1.21.1.jar
             target/PAPIProxyBridge-Fabric-${{ env.version_name }}+mc.1.21.4.jar
             target/PAPIProxyBridge-Fabric-${{ env.version_name }}+mc.1.21.5.jar
+            target/PAPIProxyBridge-Fabric-${{ env.version_name }}+mc.1.21.7.jar
             target/PAPIProxyBridge-Velocity-${{ env.version_name }}.jar
             target/PAPIProxyBridge-Bungee-${{ env.version_name }}.jar
       - name: 'Spigot: Publish to Modrinth'
@@ -126,6 +130,8 @@ jobs:
             1.21.3
             1.21.4
             1.21.5
+            1.21.6
+            1.21.7
           java: 17
       - name: 'Fabric 1.20.1: Publish to Modrinth'
         uses: WiIIiam278/mc-publish@hangar
@@ -203,6 +209,25 @@ jobs:
           game-versions: |
             1.21.5
           java: 21
+      - name: 'Fabric 1.21.7: Publish to Modrinth'
+        uses: WiIIiam278/mc-publish@hangar
+        if: success() || failure()
+        with:
+          modrinth-id: bEIUEGTX
+          modrinth-featured: false
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-dependencies: |
+            placeholder-api | suggests | *
+          files-primary: target/PAPIProxyBridge-Fabric-${{ env.version_name }}+mc.1.21.7.jar
+          name: PAPIProxyBridge (Fabric) v${{ env.version_name }}
+          version: ${{ env.version_name }}
+          version-type: alpha
+          changelog: ${{ github.event.head_commit.message }}
+          loaders: |
+            fabric
+          game-versions: |
+            1.21.7
+          java: 21
       - name: 'Bungee: Publish to Modrinth'
         uses: WiIIiam278/mc-publish@hangar
         if: success() || failure()
@@ -241,6 +266,8 @@ jobs:
             1.21.3
             1.21.4
             1.21.5
+            1.21.6
+            1.21.7
           java: 21
       - name: 'Velocity: Publish to Modrinth & Hangar'
         uses: WiIIiam278/mc-publish@hangar
@@ -284,4 +311,6 @@ jobs:
             1.21.3
             1.21.4
             1.21.5
+            1.21.6
+            1.21.7
           java: 17
