@@ -22,7 +22,12 @@ package net.william278.papiproxybridge.user;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.minecraft.registry.DynamicRegistryManager;
+//#if MC>=12107
+import net.minecraft.text.TextCodecs;
+import com.mojang.serialization.JsonOps;
+//#else
+//$$ import net.minecraft.registry.DynamicRegistryManager;
+//#endif
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Language;
@@ -54,7 +59,7 @@ public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
 
     private Component getComponent(Text text) {
 //#if MC>=12107
-        return (Component) text;
+        return GsonComponentSerializer.gson().deserialize(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, text).getOrThrow().getAsString());
 //#else
 //$$      return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonString(text, new DynamicRegistryManager.ImmutableImpl(List.of())));
 //#endif
