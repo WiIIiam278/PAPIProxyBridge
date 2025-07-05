@@ -140,6 +140,7 @@ subprojects {
     }
 
     shadowJar {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         destinationDirectory.set(file("$rootDir/target"))
         archiveClassifier.set('')
     }
@@ -174,6 +175,7 @@ subprojects {
 
     if (['bukkit', 'bungee', 'velocity'].contains(project.name) || project.parent?.name?.equals('fabric')) {
         shadowJar {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')
         }
