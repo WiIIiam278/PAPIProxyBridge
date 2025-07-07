@@ -3,7 +3,7 @@ dependencies {
     implementation project(path: ':common')
 
     implementation 'org.bstats:bstats-velocity:3.1.0'
-    implementation 'io.lettuce:lettuce-core:6.5.5.RELEASE'
+    implementation 'io.lettuce:lettuce-core:6.7.1.RELEASE'
     implementation 'de.exlll:configlib-yaml:4.6.1'
 
     compileOnly 'com.velocitypowered:velocity-api:3.4.0-SNAPSHOT'

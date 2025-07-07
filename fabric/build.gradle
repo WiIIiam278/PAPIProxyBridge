@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    shadow implementation ('io.lettuce:lettuce-core:6.5.5.RELEASE')
+    shadow implementation ('io.lettuce:lettuce-core:6.7.1.RELEASE')
     shadow implementation ('de.exlll:configlib-yaml:4.6.1')
 
     modImplementation include("net.kyori:adventure-platform-fabric:${fabric_adventure_platform_version}")
