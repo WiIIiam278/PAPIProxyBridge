@@ -78,14 +78,21 @@ public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
     public void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
         FabricPAPIProxyBridge bridge = (FabricPAPIProxyBridge) plugin;
         Text formatted = bridge.formatPlaceholders(message.getFormatFor(), this, message.getMessage());
-        Component original = getComponent(formatted);
-        Component transformed = original.children().stream().map(component -> {
-            if (component instanceof TranslatableComponent trans) {
-                return translateKeys(trans);
-            }
-            return component;
-        }).collect(Component.toComponent()).mergeStyle(original);
-        String response = wantsJson ? GsonComponentSerializer.gson().serialize(transformed) : formatted.getString();
+        String response;
+
+        if (wantsJson) {
+            Component original = getComponent(formatted);
+            Component transformed = original.children().stream().map(component -> {
+                if (component instanceof TranslatableComponent trans) {
+                    return translateKeys(trans);
+                }
+                return component;
+            }).collect(Component.toComponent()).mergeStyle(original);
+            response = GsonComponentSerializer.gson().serialize(transformed);
+        } else {
+            response = formatted.getString();
+        }
+
         message.setMessage(response);
         this.sendMessage(plugin, message, wantsJson, false);
     }
