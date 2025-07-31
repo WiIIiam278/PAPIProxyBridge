@@ -18,7 +18,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     modImplementation include("eu.pb4:placeholder-api:${fabric_placeholder_api_version}")
 
-    compileOnly "net.kyori:adventure-text-serializer-gson:4.23.0"
+    compileOnly "net.kyori:adventure-text-serializer-gson:4.24.0"
 
     shadow project(path: ":common")
 }
