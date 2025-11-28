@@ -1,16 +1,5 @@
 <!--suppress ALL -->
-<p align="center">
-    <img src="images/banner.png" alt="PAPIProxyBridge" />
-    <a href="https://github.com/WiIIiam278/PAPIProxyBridge/actions/workflows/ci.yml">
-        <img src="https://img.shields.io/github/actions/workflow/status/WiIIiam278/PAPIProxyBridge/ci.yml?branch=master&logo=github"/>
-    </a>
-    <a href="https://repo.william278.net/#releases/net/william278/papiproxybridge">
-        <img src="https://repo.william278.net/api/badge/latest/releases/net/william278/papiproxybridge?color=00fb9a&name=Maven&prefix=v" />
-    </a> 
-    <a href="https://discord.gg/tVYhJfyDWG">
-        <img src="https://img.shields.io/discord/818135932103557162.svg?label=&logo=discord&logoColor=fff&color=7389D8&labelColor=6A7EC2" />
-    </a>
-</p>
+
 <br/>
 
 **PAPIProxyBridge** is a library bridge plugin you install on both your backend and proxy servers that allows proxy plugins to format text with PlaceholderAPI placeholders.
