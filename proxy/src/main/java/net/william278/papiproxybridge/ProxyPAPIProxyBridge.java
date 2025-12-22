@@ -20,6 +20,7 @@
 package net.william278.papiproxybridge;
 
 import com.google.common.collect.*;
+import net.william278.papiproxybridge.config.Settings;
 import net.william278.papiproxybridge.user.OnlineUser;
 import net.william278.papiproxybridge.user.ProxyUser;
 import net.william278.papiproxybridge.user.Request;
@@ -38,6 +39,17 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
 
     default CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester, @NotNull UUID formatFor,
                                                     boolean wantsJson, long requestTimeout) {
+        if (requester instanceof ProxyUser user) {
+            final Settings settings = getSettings();
+            final boolean isListed = settings.getServerList().contains(user.getServerName());
+            if (settings.getServerListMode() == Settings.ServerListMode.BLACKLIST && isListed) {
+                return CompletableFuture.completedFuture(text);
+            }
+            if (settings.getServerListMode() == Settings.ServerListMode.WHITELIST && !isListed) {
+                return CompletableFuture.completedFuture(text);
+            }
+        }
+
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
         getRequests().put(request.getUuid(), future);

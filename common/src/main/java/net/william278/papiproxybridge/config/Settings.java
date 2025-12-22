@@ -37,9 +37,20 @@ public class Settings {
     private MessengerType messenger = MessengerType.PLUGIN_MESSAGE;
     private RedisSettings redis = new RedisSettings();
 
+    @Comment("The mode for the server list. Options are BLACKLIST or WHITELIST.")
+    private ServerListMode serverListMode = ServerListMode.BLACKLIST;
+
+    @Comment("A list of servers to use for whitelisting or blacklisting placeholder proxying.")
+    private List<String> serverList = Lists.newArrayList();
+
     public enum MessengerType {
         PLUGIN_MESSAGE,
         REDIS
+    }
+
+    public enum ServerListMode {
+        BLACKLIST,
+        WHITELIST
     }
 
     @Getter
