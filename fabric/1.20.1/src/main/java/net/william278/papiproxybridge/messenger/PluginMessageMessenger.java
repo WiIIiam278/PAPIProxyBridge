@@ -59,7 +59,7 @@ public class PluginMessageMessenger extends Messenger {
         }
 
         final FabricUser user = optionalFabricUser.get();
-        final TemplatePayload templatePayload = channel.equals(ComponentPayload.REQUEST_ID.toString()) ?
+        final TemplatePayload templatePayload = channel.equals(ComponentPayload.RESPONSE_ID.toString()) ?
                 new ComponentPayload(message, false) :
                 new LiteralPayload(message, false);
 

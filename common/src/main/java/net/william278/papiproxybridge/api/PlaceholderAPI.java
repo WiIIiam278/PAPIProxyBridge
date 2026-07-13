@@ -57,8 +57,8 @@ public final class PlaceholderAPI {
     private static PAPIProxyBridge plugin;
     private final static ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(1, r -> new Thread(r, "PAPIProxyBridge-PlaceholderAPI-ScheduledThread"));
     private final static String PLACEHOLDER_DELIMITER = "%%%-%%%";
-    private final ConcurrentMap<UUID, ExpiringMap<String, String>> cache;
-    private final ConcurrentMap<UUID, ExpiringMap<String, Component>> componentCache;
+    private final ConcurrentMap<CacheKey, ExpiringMap<String, String>> cache;
+    private final ConcurrentMap<CacheKey, ExpiringMap<String, Component>> componentCache;
     private long requestTimeout = 1000;
     private long cacheExpiry = 30000;
     private int retryTimes = 3;
@@ -116,9 +116,16 @@ public final class PlaceholderAPI {
     @ApiStatus.Internal
     public static void clearCache(@NotNull UUID player) {
         instances.forEach(instance -> {
-            instance.cache.remove(player);
-            instance.componentCache.remove(player);
+            instance.cache.keySet().removeIf(key -> key.contains(player));
+            instance.componentCache.keySet().removeIf(key -> key.contains(player));
         });
+    }
+
+    private record CacheKey(@NotNull UUID requester, @NotNull UUID formatFor) {
+
+        private boolean contains(@NotNull UUID player) {
+            return requester.equals(player) || formatFor.equals(player);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -161,28 +168,33 @@ public final class PlaceholderAPI {
         if (!requester.isConnected()) {
             return CompletableFuture.completedFuture(text);
         }
-        if (cacheExpiry > 0 && cache.containsKey(formatFor) && cache.get(formatFor).containsKey(text)) {
-            return CompletableFuture.completedFuture(cache.get(formatFor).get(text));
+        final CacheKey cacheKey = new CacheKey(requester.getUniqueId(), formatFor);
+        if (cacheExpiry > 0 && cache.containsKey(cacheKey) && cache.get(cacheKey).containsKey(text)) {
+            return CompletableFuture.completedFuture(cache.get(cacheKey).get(text));
         }
         final CompletableFuture<String> future = plugin.createRequest(text, requester, formatFor, false, requestTimeout);
         return orTimeoutAsync(future, requestTimeout).thenApply(formatted -> {
-            cache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
+            cache.computeIfAbsent(cacheKey, key -> ExpiringMap.builder()
                             .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
                             .build())
                     .put(text, formatted);
             return formatted;
-        }).exceptionally(e -> {
+        }).exceptionallyCompose(e -> {
             if (!requester.isConnected()) {
-                return text;
+                return CompletableFuture.completedFuture(text);
+            }
+
+            if (times > 0) {
+                return formatPlaceholders(text, requester, formatFor, times - 1);
             }
 
             if (checkLastError()) {
-                return text;
+                return CompletableFuture.completedFuture(text);
             }
 
             // Handle failed to format exceptions
-            if (e instanceof CompletionException || Arrays.stream(e.getSuppressed())
-                    .anyMatch(TimeoutException.class::isInstance)) {
+            final Throwable cause = e instanceof CompletionException ? e.getCause() : e;
+            if (cause instanceof TimeoutException) {
                 plugin.log(Level.WARNING, ("Timed out formatting placeholders for %s after %sms." +
                         "Is PAPIProxyBridge up-to-date and installed on all backend servers?")
                         .formatted(requester.getUsername(), getRequestTimeout()));
@@ -190,7 +202,7 @@ public final class PlaceholderAPI {
                 plugin.log(Level.WARNING, "Failed to format placeholders for %s".formatted(requester.getUsername()), e);
             }
 
-            return text;
+            return CompletableFuture.completedFuture(text);
         });
     }
 
@@ -261,29 +273,34 @@ public final class PlaceholderAPI {
         if (!requester.isConnected()) {
             return CompletableFuture.completedFuture(Component.text(text));
         }
-        if (cacheExpiry > 0 && componentCache.containsKey(formatFor) && componentCache.get(formatFor).containsKey(text)) {
-            return CompletableFuture.completedFuture(componentCache.get(formatFor).get(text));
+        final CacheKey cacheKey = new CacheKey(requester.getUniqueId(), formatFor);
+        if (cacheExpiry > 0 && componentCache.containsKey(cacheKey) && componentCache.get(cacheKey).containsKey(text)) {
+            return CompletableFuture.completedFuture(componentCache.get(cacheKey).get(text));
         }
         final CompletableFuture<String> future = plugin.createRequest(text, requester, formatFor, true, requestTimeout);
         return orTimeoutAsync(future, requestTimeout).thenApply(formatted -> {
             final Component deserialized = GsonComponentSerializer.gson().deserializeOr(formatted, Component.text(formatted));
-            componentCache.computeIfAbsent(requester.getUniqueId(), uuid -> ExpiringMap.builder()
+            componentCache.computeIfAbsent(cacheKey, key -> ExpiringMap.builder()
                             .expiration(cacheExpiry, TimeUnit.MILLISECONDS)
                             .build())
                     .put(text, deserialized);
             return deserialized;
-        }).exceptionally(e -> {
+        }).exceptionallyCompose(e -> {
             if (!requester.isConnected()) {
-                return Component.text(text);
+                return CompletableFuture.completedFuture(Component.text(text));
+            }
+
+            if (times > 0) {
+                return formatComponentPlaceholders(text, requester, formatFor, times - 1);
             }
 
             if (checkLastError()) {
-                return Component.text(text);
+                return CompletableFuture.completedFuture(Component.text(text));
             }
 
             // Handle failed to format exceptions
-            if (e instanceof CompletionException || Arrays.stream(e.getSuppressed())
-                    .anyMatch(TimeoutException.class::isInstance)) {
+            final Throwable cause = e instanceof CompletionException ? e.getCause() : e;
+            if (cause instanceof TimeoutException) {
                 plugin.log(Level.WARNING, ("Timed out formatting placeholders for %s after %sms." +
                         "Is PAPIProxyBridge up-to-date and installed on all backend servers?")
                         .formatted(requester.getUsername(), getRequestTimeout()));
@@ -291,7 +308,7 @@ public final class PlaceholderAPI {
                 plugin.log(Level.WARNING, "Failed to format placeholders for %s".formatted(requester.getUsername()), e);
             }
 
-            return Component.text(text);
+            return CompletableFuture.completedFuture(Component.text(text));
         });
     }
 

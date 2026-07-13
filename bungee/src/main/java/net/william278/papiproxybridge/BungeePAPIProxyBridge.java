@@ -22,7 +22,7 @@ package net.william278.papiproxybridge;
 import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.Setter;
-import net.md_5.bungee.api.event.PluginMessageEvent;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -79,10 +79,6 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
         getProxy().getPluginManager().unregisterListener(this);
     }
 
-    @EventHandler
-    public void onPluginMessageReceived(PluginMessageEvent event) {
-        this.handleMessage(this, event.getTag(), event.getData(), false);
-    }
 
     @EventHandler
     public void onJoin(PostLoginEvent event) {
@@ -91,7 +87,7 @@ public class BungeePAPIProxyBridge extends Plugin implements ProxyPAPIProxyBridg
     }
 
     @EventHandler
-    public void onQuit(PostLoginEvent event) {
+    public void onQuit(PlayerDisconnectEvent event) {
         final BungeeUser user = BungeeUser.adapt(event.getPlayer());
         users.remove(user.getUniqueId());
         PlaceholderAPI.clearCache(event.getPlayer().getUniqueId());

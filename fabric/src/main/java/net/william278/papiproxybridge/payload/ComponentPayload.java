@@ -27,8 +27,8 @@ import net.william278.papiproxybridge.PAPIProxyBridge;
 
 public final class ComponentPayload extends TemplatePayload {
 
-    public static final CustomPayload.Id<ComponentPayload> REQUEST_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(false)));
-    public static final CustomPayload.Id<ComponentPayload> RESPONSE_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(true)));
+    public static final CustomPayload.Id<ComponentPayload> REQUEST_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(true)));
+    public static final CustomPayload.Id<ComponentPayload> RESPONSE_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(false)));
     public static final PacketCodec<PacketByteBuf, ComponentPayload> CODEC = PacketCodec.of((value, buf) -> writeBytes(buf, value.bytes), ComponentPayload::new);
 
     private final boolean isRequest;

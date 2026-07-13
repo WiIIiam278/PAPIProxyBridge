@@ -97,21 +97,19 @@ public interface PAPIProxyBridge {
             return;
         }
 
-        final ByteArrayDataInput inputStream = ByteStreams.newDataInput(message);
-        final long mostSignificantBits = inputStream.readLong();
-        final long leastSignificantBits = inputStream.readLong();
-        final UUID uuid = new UUID(mostSignificantBits, leastSignificantBits);
-        final OnlineUser user = plugin.findPlayer(uuid).orElse(null);
-        if (user == null) {
-            return;
-        }
-
         try {
-            final short messageLength = inputStream.readShort();
+            final ByteArrayDataInput inputStream = ByteStreams.newDataInput(message);
+            final UUID uuid = new UUID(inputStream.readLong(), inputStream.readLong());
+            final OnlineUser user = plugin.findPlayer(uuid).orElse(null);
+            if (user == null) {
+                return;
+            }
+
+            final int messageLength = inputStream.readUnsignedShort();
             final byte[] messageBody = new byte[messageLength];
             inputStream.readFully(messageBody);
             user.handleMessage(plugin, Request.deserialize(messageBody), channel.equals(getComponentChannel(isRequest)));
-        } catch (IOException | ClassNotFoundException | IllegalStateException e) {
+        } catch (IOException | ClassNotFoundException | RuntimeException e) {
             plugin.log(Level.SEVERE, "Failed to fully read plugin message. Is PAPIProxyBridge up-to-date and installed on all servers?", e);
         }
     }

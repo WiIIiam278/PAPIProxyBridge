@@ -88,6 +88,7 @@ public class BukkitPAPIProxyBridge extends JavaPlugin implements PAPIProxyBridge
     @Override
     public void onDisable() {
         messenger.onDisable();
+        executorService.shutdownNow();
     }
 
     private void setupMetrics() {

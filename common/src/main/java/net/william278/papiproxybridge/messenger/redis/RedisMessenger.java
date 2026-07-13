@@ -59,14 +59,13 @@ public class RedisMessenger extends Messenger {
     public void onEnable() {
         try {
             createClient();
+            connection = client.connect(StringByteArrayCodec.INSTANCE);
+            listen();
         } catch (Throwable e) {
+            onDisable();
             plugin.log(Level.SEVERE, "Failed to establish connection with Redis. "
                     + "Please check the supplied credentials in the config file", e);
-            return;
         }
-
-        connection = client.connect(StringByteArrayCodec.INSTANCE);
-        listen();
     }
 
     private void createClient() {
@@ -74,13 +73,15 @@ public class RedisMessenger extends Messenger {
         final Settings.RedisSettings.RedisSentinel sentinel = redisSettings.getSentinel();
 
         if (sentinel.getNodes().isEmpty()) {
-            client = RedisClient.create(RedisURI.builder()
+            final RedisURI.Builder builder = RedisURI.builder()
                     .withHost(credentials.getHost())
                     .withPort(credentials.getPort())
-                    .withPassword(credentials.getPassword() == null ? null : credentials.getPassword().toCharArray())
                     .withClientName(CLIENT_NAME)
-                    .withSsl(credentials.isUseSsl())
-                    .build());
+                    .withSsl(credentials.isUseSsl());
+            if (credentials.getPassword() != null && !credentials.getPassword().isEmpty()) {
+                builder.withPassword(credentials.getPassword());
+            }
+            client = RedisClient.create(builder.build());
             return;
         }
 
@@ -93,27 +94,36 @@ public class RedisMessenger extends Messenger {
             if (split.length != 2) {
                 throw new IllegalArgumentException("Invalid sentinel node: " + node);
             }
-            builder.withSentinel(split[0], Integer.parseInt(split[1]));
+            if (sentinel.getPassword() == null || sentinel.getPassword().isEmpty()) {
+                builder.withSentinel(split[0], Integer.parseInt(split[1]));
+            } else {
+                builder.withSentinel(split[0], Integer.parseInt(split[1]), sentinel.getPassword());
+            }
         });
 
         builder.withClientName(CLIENT_NAME)
                 .withSsl(credentials.isUseSsl());
+        if (credentials.getPassword() != null && !credentials.getPassword().isEmpty()) {
+            builder.withPassword(credentials.getPassword());
+        }
         client = RedisClient.create(builder.build());
     }
 
     @Override
     public void onDisable() {
+        closed = true;
         try {
-            client.close();
+            if (client != null) {
+                client.close();
+            }
         } catch (Throwable ignored) {
 
         }
-        closed = true;
     }
 
     @Override
     public void sendMessage(@NotNull UUID uuid, @NotNull String channel, byte @NotNull [] message) {
-        if (closed) {
+        if (closed || connection == null) {
             return;
         }
         connection.async().publish(channel, message);

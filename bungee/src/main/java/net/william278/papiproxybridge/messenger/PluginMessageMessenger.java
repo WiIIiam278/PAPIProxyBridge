@@ -21,6 +21,7 @@ package net.william278.papiproxybridge.messenger;
 
 import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.william278.papiproxybridge.BungeePAPIProxyBridge;
@@ -61,6 +62,14 @@ public class PluginMessageMessenger extends Messenger implements Listener {
 
     @EventHandler
     public void onPluginMessageReceived(net.md_5.bungee.api.event.PluginMessageEvent event) {
+        if (!event.getTag().equals(PAPIProxyBridge.getChannel(false))
+                && !event.getTag().equals(PAPIProxyBridge.getComponentChannel(false))) {
+            return;
+        }
+        event.setCancelled(true);
+        if (!(event.getSender() instanceof Server)) {
+            return;
+        }
         plugin.handleMessage(plugin, event.getTag(), event.getData(), false);
     }
 

@@ -53,10 +53,8 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
         final Request request = new Request(text, formatFor);
         final CompletableFuture<String> future = new CompletableFuture<>();
         getRequests().put(request.getUuid(), future);
-        future.exceptionallyAsync(throwable -> {
-            getRequests().remove(request.getUuid());
-            return text;
-        });
+        future.orTimeout(requestTimeout, TimeUnit.MILLISECONDS)
+                .whenComplete((result, throwable) -> getRequests().remove(request.getUuid()));
         requester.sendMessage(this, request, wantsJson, true);
         return future;
     }
@@ -69,7 +67,8 @@ public interface ProxyPAPIProxyBridge extends PAPIProxyBridge {
                 .filter(OnlineUser::isConnected)
                 .collect(() -> Multimaps.newSetMultimap(Maps.newConcurrentMap(), Sets::newConcurrentHashSet),
                         (map, user) -> map.put(user.getServerName(), createRequest(HANDSHAKE_PLACEHOLDER, user, user.getUniqueId(), false, requestTimeout)
-                                .thenApply(message -> message.equals(HANDSHAKE_RESPONSE))),
+                                .thenApply(message -> message.equals(HANDSHAKE_RESPONSE))
+                                .exceptionally(throwable -> false)),
                         Multimap::putAll);
 
         CompletableFuture.allOf(serverMap.values().toArray(new CompletableFuture[0]))
