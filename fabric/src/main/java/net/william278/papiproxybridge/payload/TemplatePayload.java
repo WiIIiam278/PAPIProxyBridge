@@ -21,22 +21,39 @@ package net.william278.papiproxybridge.payload;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.CustomPayload;
+//#if MC>=260102
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+//#else
+//$$ import net.minecraft.network.PacketByteBuf;
+//$$ import net.minecraft.network.packet.CustomPayload;
+//#endif
 
 @Getter
 @RequiredArgsConstructor
-public abstract class TemplatePayload implements CustomPayload {
+//#if MC>=260102
+public abstract class TemplatePayload implements CustomPacketPayload {
+//#else
+//$$ public abstract class TemplatePayload implements CustomPayload {
+//#endif
 
     protected final byte[] bytes;
 
-    protected static byte[] getWrittenBytes(PacketByteBuf buf) {
+//#if MC>=260102
+    protected static byte[] getWrittenBytes(FriendlyByteBuf buf) {
+//#else
+//$$ protected static byte[] getWrittenBytes(PacketByteBuf buf) {
+//#endif
         byte[] bs = new byte[buf.readableBytes()];
         buf.readBytes(bs);
         return bs;
     }
 
-    protected static void writeBytes(PacketByteBuf buf, byte[] v) {
+//#if MC>=260102
+    protected static void writeBytes(FriendlyByteBuf buf, byte[] v) {
+//#else
+//$$ protected static void writeBytes(PacketByteBuf buf, byte[] v) {
+//#endif
         buf.writeBytes(v);
     }
 }

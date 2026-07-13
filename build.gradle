@@ -2,8 +2,8 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id 'com.gradleup.shadow' version '9.0.0-beta17'
-    id 'org.cadixdev.licenser' version '0.6.1' apply false
-    id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
+    id 'dev.architectury.loom' version '1.14-SNAPSHOT' apply false
+    id 'dev.architectury.loom-no-remap' version '1.14-SNAPSHOT' apply false
     id 'gg.essential.multi-version.root' apply false
     id 'org.ajoberstar.grgit' version '5.3.2'
     id 'maven-publish'
@@ -57,7 +57,6 @@ allprojects {
     }
 
     apply plugin: 'com.gradleup.shadow'
-    apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'java'
 
     compileJava.options.encoding = 'UTF-8'
@@ -93,10 +92,26 @@ allprojects {
         useJUnitPlatform()
     }
 
-    license {
-        header = rootProject.file('HEADER')
-        include '**/*.java'
-        newLine = true
+    def licenseHeader = '/*\n' + rootProject.file('HEADER').readLines().collect {
+        " *${it ? " $it" : ''}"
+    }.join('\n') + '\n */'
+    def javaSources = { fileTree(projectDir) { include 'src/**/*.java' } }
+
+    tasks.register('licenseCheck') {
+        doLast {
+            def missing = javaSources().findAll { !it.text.startsWith(licenseHeader) }
+            if (!missing.isEmpty()) {
+                throw new GradleException("Missing license header: ${missing*.path.join(', ')}")
+            }
+        }
+    }
+
+    tasks.register('licenseFormat') {
+        doLast {
+            javaSources().findAll { !it.text.startsWith(licenseHeader) }.each {
+                it.text = "${licenseHeader}\n\n${it.text}"
+            }
+        }
     }
 
     processResources {
@@ -127,11 +142,17 @@ subprojects {
     } else {
         name += "-${project.name.capitalize()}"
     }
-    archivesBaseName = name
+    base {
+        archivesName = name
+    }
 
     if (project.parent?.name?.equals('fabric')) {
-        apply plugin: 'dev.architectury.loom'
-        compileJava.options.release.set (project.name == '1.20.1' ? 17 : 21) // 1.20.1 requires Java 17
+        def fabricMajorVersion = project.name.split('\\.')[0] as int
+        apply plugin: fabricMajorVersion >= 26 ? 'dev.architectury.loom-no-remap' : 'dev.architectury.loom'
+        compileJava.options.release.set(project.name == '1.20.1' ? 17 : fabricMajorVersion >= 26 ? 25 : 21)
+        if (fabricMajorVersion >= 26) {
+            java.toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+        }
         version += "+mc.${project.name}"
     }
 

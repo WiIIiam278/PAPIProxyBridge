@@ -27,7 +27,11 @@ import lombok.Setter;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.text.Text;
+//#if MC>=260102
+import net.minecraft.network.chat.Component;
+//#else
+//$$ import net.minecraft.text.Text;
+//#endif
 import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.william278.papiproxybridge.config.Settings;
 import net.william278.papiproxybridge.messenger.Messenger;
@@ -72,7 +76,11 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
             FabricUser user = FabricUser.adapt(handler.player);
             fabricUsers.put(user.getUniqueId(), user);
         });
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> fabricUsers.remove(handler.player.getUuid()));
+//#if MC>=260102
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> fabricUsers.remove(handler.player.getUUID()));
+//#else
+//$$    ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> fabricUsers.remove(handler.player.getUuid()));
+//#endif
     }
 
     @Override
@@ -140,10 +148,19 @@ public class FabricPAPIProxyBridge implements DedicatedServerModInitializer, PAP
     }
 
     @NotNull
-    public final Text formatPlaceholders(@NotNull UUID formatFor, @NotNull FabricUser requester, @NotNull String text) {
+//#if MC>=260102
+    public final Component formatPlaceholders(@NotNull UUID formatFor, @NotNull FabricUser requester, @NotNull String text) {
+//#else
+//$$ public final Text formatPlaceholders(@NotNull UUID formatFor, @NotNull FabricUser requester, @NotNull String text) {
+//#endif
         text = text.replaceAll(HANDSHAKE_PLACEHOLDER, HANDSHAKE_RESPONSE);
-        return Placeholders.parseText(Text.of(text), PlaceholderContext.of(
-                findPlayer(formatFor).orElse(requester).player())
-        );
+//#if MC>=260102
+        return Placeholders.SERVER_PLACEHOLDER_PARSER.parseComponent(text, PlaceholderContext.of(
+                findPlayer(formatFor).orElse(requester).player()).asParserContext());
+//#else
+//$$    return Placeholders.parseText(Text.of(text), PlaceholderContext.of(
+//$$            findPlayer(formatFor).orElse(requester).player())
+//$$    );
+//#endif
     }
 }
