@@ -49,6 +49,7 @@ shadowJar {
     exclude '/mappings/*'
 
     relocate 'net.jodah', 'net.william278.papiproxybridge.libraries'
+    relocate 'io.netty', 'net.william278.papiproxybridge.libraries.netty'
     relocate 'org.snakeyaml', 'net.william278.papiproxybridge.libraries.snakeyaml'
     relocate 'io.lettuce', 'net.william278.papiproxybridge.libraries.lettuce'
     relocate 'de.exlll', 'net.william278.papiproxybridge.libraries.configlib'
