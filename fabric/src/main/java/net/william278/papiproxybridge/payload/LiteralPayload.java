@@ -19,18 +19,32 @@
 
 package net.william278.papiproxybridge.payload;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+//#if MC>=260102
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+//#else
+//$$ import net.minecraft.network.PacketByteBuf;
+//$$ import net.minecraft.network.RegistryByteBuf;
+//$$ import net.minecraft.network.codec.PacketCodec;
+//$$ import net.minecraft.network.packet.CustomPayload;
+//$$ import net.minecraft.util.Identifier;
+//#endif
 import net.william278.papiproxybridge.PAPIProxyBridge;
 
 public final class LiteralPayload extends TemplatePayload {
 
-    public static final Id<LiteralPayload> REQUEST_ID = new Id<>(Identifier.of(PAPIProxyBridge.getChannel(true)));
-    public static final Id<LiteralPayload> RESPONSE_ID = new Id<>(Identifier.of(PAPIProxyBridge.getChannel(false)));
-    public static final PacketCodec<RegistryByteBuf, LiteralPayload> CODEC = PacketCodec.of((value, buf) -> writeBytes(buf, value.bytes), LiteralPayload::new);
+//#if MC>=260102
+    public static final CustomPacketPayload.Type<LiteralPayload> REQUEST_ID = new CustomPacketPayload.Type<>(Identifier.parse(PAPIProxyBridge.getChannel(true)));
+    public static final CustomPacketPayload.Type<LiteralPayload> RESPONSE_ID = new CustomPacketPayload.Type<>(Identifier.parse(PAPIProxyBridge.getChannel(false)));
+    public static final StreamCodec<RegistryFriendlyByteBuf, LiteralPayload> CODEC = StreamCodec.of((buf, value) -> writeBytes(buf, value.bytes), LiteralPayload::new);
+//#else
+//$$ public static final Id<LiteralPayload> REQUEST_ID = new Id<>(Identifier.of(PAPIProxyBridge.getChannel(true)));
+//$$ public static final Id<LiteralPayload> RESPONSE_ID = new Id<>(Identifier.of(PAPIProxyBridge.getChannel(false)));
+//$$ public static final PacketCodec<RegistryByteBuf, LiteralPayload> CODEC = PacketCodec.of((value, buf) -> writeBytes(buf, value.bytes), LiteralPayload::new);
+//#endif
 
     private final boolean isRequest;
 
@@ -39,12 +53,20 @@ public final class LiteralPayload extends TemplatePayload {
         this.isRequest = isRequest;
     }
 
-    private LiteralPayload(PacketByteBuf buf) {
+//#if MC>=260102
+    private LiteralPayload(FriendlyByteBuf buf) {
+//#else
+//$$ private LiteralPayload(PacketByteBuf buf) {
+//#endif
         this(getWrittenBytes(buf), true);
     }
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+//#if MC>=260102
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+//#else
+//$$ public Id<? extends CustomPayload> getId() {
+//#endif
         return isRequest ? REQUEST_ID : RESPONSE_ID;
     }
 }

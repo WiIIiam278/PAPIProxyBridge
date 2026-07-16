@@ -22,9 +22,6 @@ package net.william278.papiproxybridge.messenger;
 import lombok.RequiredArgsConstructor;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.william278.papiproxybridge.FabricPAPIProxyBridge;
 import net.william278.papiproxybridge.payload.ComponentPayload;
 import net.william278.papiproxybridge.payload.LiteralPayload;
@@ -41,14 +38,25 @@ public class PluginMessageMessenger extends Messenger {
 
     @Override
     public void onEnable() {
-        PayloadTypeRegistry.playC2S().register(LiteralPayload.RESPONSE_ID, LiteralPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(LiteralPayload.RESPONSE_ID, LiteralPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(LiteralPayload.REQUEST_ID, LiteralPayload.CODEC);
-        PayloadTypeRegistry.playC2S().register(LiteralPayload.REQUEST_ID, LiteralPayload.CODEC);
-        PayloadTypeRegistry.playC2S().register(ComponentPayload.RESPONSE_ID, ComponentPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ComponentPayload.RESPONSE_ID, ComponentPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ComponentPayload.REQUEST_ID, ComponentPayload.CODEC);
-        PayloadTypeRegistry.playC2S().register(ComponentPayload.REQUEST_ID, ComponentPayload.CODEC);
+//#if MC>=260102
+        PayloadTypeRegistry.serverboundPlay().register(LiteralPayload.RESPONSE_ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(LiteralPayload.RESPONSE_ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(LiteralPayload.REQUEST_ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(LiteralPayload.REQUEST_ID, LiteralPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ComponentPayload.RESPONSE_ID, ComponentPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ComponentPayload.RESPONSE_ID, ComponentPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ComponentPayload.REQUEST_ID, ComponentPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ComponentPayload.REQUEST_ID, ComponentPayload.CODEC);
+//#else
+//$$    PayloadTypeRegistry.playC2S().register(LiteralPayload.RESPONSE_ID, LiteralPayload.CODEC);
+//$$    PayloadTypeRegistry.playS2C().register(LiteralPayload.RESPONSE_ID, LiteralPayload.CODEC);
+//$$    PayloadTypeRegistry.playS2C().register(LiteralPayload.REQUEST_ID, LiteralPayload.CODEC);
+//$$    PayloadTypeRegistry.playC2S().register(LiteralPayload.REQUEST_ID, LiteralPayload.CODEC);
+//$$    PayloadTypeRegistry.playC2S().register(ComponentPayload.RESPONSE_ID, ComponentPayload.CODEC);
+//$$    PayloadTypeRegistry.playS2C().register(ComponentPayload.RESPONSE_ID, ComponentPayload.CODEC);
+//$$    PayloadTypeRegistry.playS2C().register(ComponentPayload.REQUEST_ID, ComponentPayload.CODEC);
+//$$    PayloadTypeRegistry.playC2S().register(ComponentPayload.REQUEST_ID, ComponentPayload.CODEC);
+//#endif
 
         ServerPlayNetworking.registerGlobalReceiver(LiteralPayload.REQUEST_ID, (payload, context) -> plugin.handleMessage(plugin, LiteralPayload.REQUEST_ID.id().toString(), payload.getBytes(), true));
         ServerPlayNetworking.registerGlobalReceiver(ComponentPayload.REQUEST_ID, (payload, context) -> plugin.handleMessage(plugin, ComponentPayload.REQUEST_ID.id().toString(), payload.getBytes(), true));
@@ -62,10 +70,9 @@ public class PluginMessageMessenger extends Messenger {
         }
         final FabricUser user = optionalFabricUser.get();
 
-        final CustomPayload payload = channel.equals(ComponentPayload.RESPONSE_ID.id().toString()) ?
+        final var payload = channel.equals(ComponentPayload.RESPONSE_ID.id().toString()) ?
                 new ComponentPayload(message, false) :
                 new LiteralPayload(message, false);
-        final Packet<?> packet = new CustomPayloadS2CPacket(payload);
-        user.player().networkHandler.sendPacket(packet);
+        ServerPlayNetworking.send(user.player(), payload);
     }
 }

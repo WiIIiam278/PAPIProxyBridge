@@ -19,17 +19,30 @@
 
 package net.william278.papiproxybridge.payload;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+//#if MC>=260102
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+//#else
+//$$ import net.minecraft.network.PacketByteBuf;
+//$$ import net.minecraft.network.codec.PacketCodec;
+//$$ import net.minecraft.network.packet.CustomPayload;
+//$$ import net.minecraft.util.Identifier;
+//#endif
 import net.william278.papiproxybridge.PAPIProxyBridge;
 
 public final class ComponentPayload extends TemplatePayload {
 
-    public static final CustomPayload.Id<ComponentPayload> REQUEST_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(false)));
-    public static final CustomPayload.Id<ComponentPayload> RESPONSE_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(true)));
-    public static final PacketCodec<PacketByteBuf, ComponentPayload> CODEC = PacketCodec.of((value, buf) -> writeBytes(buf, value.bytes), ComponentPayload::new);
+//#if MC>=260102
+    public static final CustomPacketPayload.Type<ComponentPayload> REQUEST_ID = new CustomPacketPayload.Type<>(Identifier.parse(PAPIProxyBridge.getComponentChannel(true)));
+    public static final CustomPacketPayload.Type<ComponentPayload> RESPONSE_ID = new CustomPacketPayload.Type<>(Identifier.parse(PAPIProxyBridge.getComponentChannel(false)));
+    public static final StreamCodec<FriendlyByteBuf, ComponentPayload> CODEC = StreamCodec.of((buf, value) -> writeBytes(buf, value.bytes), ComponentPayload::new);
+//#else
+//$$ public static final CustomPayload.Id<ComponentPayload> REQUEST_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(true)));
+//$$ public static final CustomPayload.Id<ComponentPayload> RESPONSE_ID = new CustomPayload.Id<>(Identifier.of(PAPIProxyBridge.getComponentChannel(false)));
+//$$ public static final PacketCodec<PacketByteBuf, ComponentPayload> CODEC = PacketCodec.of((value, buf) -> writeBytes(buf, value.bytes), ComponentPayload::new);
+//#endif
 
     private final boolean isRequest;
 
@@ -38,12 +51,20 @@ public final class ComponentPayload extends TemplatePayload {
         this.isRequest = isRequest;
     }
 
-    private ComponentPayload(PacketByteBuf buf) {
+//#if MC>=260102
+    private ComponentPayload(FriendlyByteBuf buf) {
+//#else
+//$$ private ComponentPayload(PacketByteBuf buf) {
+//#endif
         this(getWrittenBytes(buf), true);
     }
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+//#if MC>=260102
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+//#else
+//$$ public Id<? extends CustomPayload> getId() {
+//#endif
         return isRequest ? REQUEST_ID : RESPONSE_ID;
     }
 }

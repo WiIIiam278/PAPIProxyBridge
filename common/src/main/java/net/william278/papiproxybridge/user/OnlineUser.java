@@ -44,6 +44,9 @@ public interface OnlineUser {
 
         try {
             final byte[] serializedRequest = request.serialize();
+            if (serializedRequest.length > 0xffff) {
+                throw new IOException("Serialized request exceeds 65535 bytes");
+            }
             messageWriter.writeShort(serializedRequest.length);
             messageWriter.write(serializedRequest);
         } catch (IOException e) {

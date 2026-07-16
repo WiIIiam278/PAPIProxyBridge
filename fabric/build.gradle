@@ -14,9 +14,15 @@ dependencies {
     shadow implementation ('io.lettuce:lettuce-core:6.5.5.RELEASE')
     shadow implementation ('de.exlll:configlib-yaml:4.6.1')
 
-    modImplementation include("net.kyori:adventure-platform-fabric:${fabric_adventure_platform_version}")
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
-    modImplementation include("eu.pb4:placeholder-api:${fabric_placeholder_api_version}")
+    if (platform.isUnobfuscated) {
+        implementation include("net.kyori:adventure-platform-fabric:${fabric_adventure_platform_version}")
+        compileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+        implementation include("eu.pb4:placeholder-api:${fabric_placeholder_api_version}")
+    } else {
+        modImplementation include("net.kyori:adventure-platform-fabric:${fabric_adventure_platform_version}")
+        modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+        modImplementation include("eu.pb4:placeholder-api:${fabric_placeholder_api_version}")
+    }
 
     compileOnly "net.kyori:adventure-text-serializer-gson:4.23.0"
 
@@ -31,6 +37,7 @@ processResources {
                 fabric_minecraft_version: project.name,
         ])
     }
+
 }
 
 shadowJar {
@@ -42,6 +49,7 @@ shadowJar {
     exclude '/mappings/*'
 
     relocate 'net.jodah', 'net.william278.papiproxybridge.libraries'
+    relocate 'io.netty', 'net.william278.papiproxybridge.libraries.netty'
     relocate 'org.snakeyaml', 'net.william278.papiproxybridge.libraries.snakeyaml'
     relocate 'io.lettuce', 'net.william278.papiproxybridge.libraries.lettuce'
     relocate 'de.exlll', 'net.william278.papiproxybridge.libraries.configlib'
@@ -51,14 +59,38 @@ shadowJar {
     minimize()
 }
 
-remapJar {
-    dependsOn tasks.shadowJar
-    mustRunAfter tasks.shadowJar
-    inputFile = shadowJar.archiveFile.get()
-    addNestedDependencies = true
+if (!platform.isUnobfuscated) {
+    remapJar {
+        dependsOn tasks.shadowJar
+        mustRunAfter tasks.shadowJar
+        inputFile = shadowJar.archiveFile.get()
+        addNestedDependencies = true
 
-    destinationDirectory.set(file("$rootDir/target/"))
-    archiveClassifier.set('')
+        destinationDirectory.set(file("$rootDir/target/"))
+        archiveClassifier.set('')
+    }
+
+    shadowJar.finalizedBy(remapJar)
+} else {
+    // ponytail: 26.x ships shadowJar directly; Loom's redundant raw jar re-nests include dependencies.
+    tasks.jar.enabled = false
+
+    shadowJar {
+        dependsOn tasks.processIncludeJars
+        destinationDirectory.set(file("$rootDir/target/"))
+        archiveClassifier.set('')
+
+        from(tasks.processIncludeJars.outputs.files) {
+            into 'META-INF/jars'
+        }
+
+        filesMatching('fabric.mod.json') {
+            filter { line ->
+                line == '}' ? "  ,\"jars\": [\n" +
+                        "    {\"file\": \"META-INF/jars/adventure-platform-fabric-${fabric_adventure_platform_version}.jar\"},\n" +
+                        "    {\"file\": \"META-INF/jars/placeholder-api-${fabric_placeholder_api_version}.jar\"}\n" +
+                        "  ]\n}" : line
+            }
+        }
+    }
 }
-
-shadowJar.finalizedBy(remapJar)

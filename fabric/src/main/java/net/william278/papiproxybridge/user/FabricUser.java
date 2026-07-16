@@ -22,15 +22,23 @@ package net.william278.papiproxybridge.user;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-//#if MC>=12107
-import net.minecraft.text.TextCodecs;
+//#if MC>=260102
 import com.mojang.serialization.JsonOps;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.server.level.ServerPlayer;
+//#elseif MC>=12107
+//$$ import net.minecraft.text.TextCodecs;
+//$$ import com.mojang.serialization.JsonOps;
+//$$ import net.minecraft.server.network.ServerPlayerEntity;
+//$$ import net.minecraft.text.Text;
+//$$ import net.minecraft.util.Language;
 //#else
 //$$ import net.minecraft.registry.DynamicRegistryManager;
+//$$ import net.minecraft.server.network.ServerPlayerEntity;
+//$$ import net.minecraft.text.Text;
+//$$ import net.minecraft.util.Language;
 //#endif
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Language;
 import net.william278.papiproxybridge.FabricPAPIProxyBridge;
 import net.william278.papiproxybridge.PAPIProxyBridge;
 import org.jetbrains.annotations.NotNull;
@@ -38,10 +46,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
+//#if MC>=260102
+public record FabricUser(ServerPlayer player) implements OnlineUser {
+//#else
+//$$ public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
+//#endif
 
     @NotNull
-    public static FabricUser adapt(@NotNull ServerPlayerEntity player) {
+//#if MC>=260102
+    public static FabricUser adapt(@NotNull ServerPlayer player) {
+//#else
+//$$ public static FabricUser adapt(@NotNull ServerPlayerEntity player) {
+//#endif
         return new FabricUser(player);
     }
 
@@ -54,13 +70,21 @@ public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
     @Override
     @NotNull
     public UUID getUniqueId() {
-        return player.getUuid();
+//#if MC>=260102
+        return player.getUUID();
+//#else
+//$$    return player.getUuid();
+//#endif
     }
 
-    private Component getComponent(Text text) {
-//#if MC>=12107
-        return GsonComponentSerializer.gson().deserialize(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, text).getOrThrow().getAsString());
+//#if MC>=260102
+    private Component getComponent(net.minecraft.network.chat.Component text) {
+        return GsonComponentSerializer.gson().deserialize(ComponentSerialization.CODEC.encodeStart(JsonOps.INSTANCE, text).getOrThrow().getAsString());
+//#elseif MC>=12107
+//$$ private Component getComponent(Text text) {
+//$$    return GsonComponentSerializer.gson().deserialize(TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, text).getOrThrow().getAsString());
 //#else
+//$$ private Component getComponent(Text text) {
 //$$      return GsonComponentSerializer.gson().deserialize(Text.Serialization.toJsonString(text, new DynamicRegistryManager.ImmutableImpl(List.of())));
 //#endif
     }
@@ -68,7 +92,11 @@ public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
     private Component translateKeys(TranslatableComponent translatable) {
         final String key = translatable.key();
         final @Nullable String translated = Objects.requireNonNullElse(
-                Language.getInstance().get(key, translatable.fallback()),
+//#if MC>=260102
+                Language.getInstance().getOrDefault(key, translatable.fallback()),
+//#else
+//$$            Language.getInstance().get(key, translatable.fallback()),
+//#endif
                 key
         );
         return translatable.fallback(translated);
@@ -77,7 +105,11 @@ public record FabricUser(ServerPlayerEntity player) implements OnlineUser {
     @Override
     public void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
         FabricPAPIProxyBridge bridge = (FabricPAPIProxyBridge) plugin;
-        Text formatted = bridge.formatPlaceholders(message.getFormatFor(), this, message.getMessage());
+//#if MC>=260102
+        net.minecraft.network.chat.Component formatted = bridge.formatPlaceholders(message.getFormatFor(), this, message.getMessage());
+//#else
+//$$    Text formatted = bridge.formatPlaceholders(message.getFormatFor(), this, message.getMessage());
+//#endif
         String response;
 
         if (wantsJson) {
