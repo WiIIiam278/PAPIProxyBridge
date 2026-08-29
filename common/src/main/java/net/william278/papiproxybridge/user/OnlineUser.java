@@ -36,6 +36,18 @@ public interface OnlineUser {
     @NotNull
     UUID getUniqueId();
 
+    /**
+     * Returns the runtime context in which placeholder results may be reused.
+     * Implementations should change this value when the same user can resolve
+     * placeholders against a different backend or data source.
+     *
+     * @return the placeholder cache scope
+     */
+    @NotNull
+    default String getPlaceholderCacheScope() {
+        return "";
+    }
+
     default void sendMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request request, boolean wantsJson, boolean isRequest) {
         final ByteArrayDataOutput messageWriter = ByteStreams.newDataOutput();
         final UUID uuid = getUniqueId();

@@ -121,7 +121,7 @@ public final class PlaceholderAPI {
         });
     }
 
-    private record CacheKey(@NotNull UUID requester, @NotNull UUID formatFor) {
+    private record CacheKey(@NotNull UUID requester, @NotNull UUID formatFor, @NotNull String scope) {
 
         private boolean contains(@NotNull UUID player) {
             return requester.equals(player) || formatFor.equals(player);
@@ -168,7 +168,7 @@ public final class PlaceholderAPI {
         if (!requester.isConnected()) {
             return CompletableFuture.completedFuture(text);
         }
-        final CacheKey cacheKey = new CacheKey(requester.getUniqueId(), formatFor);
+        final CacheKey cacheKey = new CacheKey(requester.getUniqueId(), formatFor, requester.getPlaceholderCacheScope());
         if (cacheExpiry > 0 && cache.containsKey(cacheKey) && cache.get(cacheKey).containsKey(text)) {
             return CompletableFuture.completedFuture(cache.get(cacheKey).get(text));
         }
@@ -273,7 +273,7 @@ public final class PlaceholderAPI {
         if (!requester.isConnected()) {
             return CompletableFuture.completedFuture(Component.text(text));
         }
-        final CacheKey cacheKey = new CacheKey(requester.getUniqueId(), formatFor);
+        final CacheKey cacheKey = new CacheKey(requester.getUniqueId(), formatFor, requester.getPlaceholderCacheScope());
         if (cacheExpiry > 0 && componentCache.containsKey(cacheKey) && componentCache.get(cacheKey).containsKey(text)) {
             return CompletableFuture.completedFuture(componentCache.get(cacheKey).get(text));
         }
