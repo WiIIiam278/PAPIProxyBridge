@@ -43,4 +43,10 @@ public interface ProxyUser extends OnlineUser {
     @NotNull
     String getServerName();
 
+    @Override
+    @NotNull
+    default String getPlaceholderCacheScope() {
+        return getServerName();
+    }
+
 }

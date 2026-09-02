@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -90,6 +91,30 @@ class PlaceholderAPITest {
     }
 
     @Test
+    void cacheIsIsolatedByBackendServer() {
+        final TestProxyUser proxyUser = new TestProxyUser(UUID.randomUUID(), "lobby");
+        bridge.response = "lobby";
+        assertEquals("lobby", api.formatPlaceholders("%server_name%", proxyUser).join());
+
+        proxyUser.serverName = "survival";
+        bridge.response = "survival";
+        assertEquals("survival", api.formatPlaceholders("%server_name%", proxyUser).join());
+        assertEquals(2, bridge.requests.get());
+    }
+
+    @Test
+    void componentCacheIsIsolatedByBackendServer() {
+        final TestProxyUser proxyUser = new TestProxyUser(UUID.randomUUID(), "lobby");
+        bridge.response = "{\"text\":\"lobby\"}";
+        assertEquals(Component.text("lobby"), api.formatComponentPlaceholders("%server_name%", proxyUser).join());
+
+        proxyUser.serverName = "survival";
+        bridge.response = "{\"text\":\"survival\"}";
+        assertEquals(Component.text("survival"), api.formatComponentPlaceholders("%server_name%", proxyUser).join());
+        assertEquals(2, bridge.requests.get());
+    }
+
+    @Test
     void retriesFailedRequests() {
         api.setRetryTimes(1);
         bridge.failures = 1;
@@ -99,11 +124,23 @@ class PlaceholderAPITest {
         assertEquals(2, bridge.requests.get());
     }
 
+    @Test
+    void retriesTimedOutRequests() throws Exception {
+        api.setRequestTimeout(20);
+        api.setRetryTimes(1);
+        bridge.timeouts = 1;
+        bridge.response = "formatted";
+
+        assertEquals("formatted", api.formatPlaceholders("%name%", requester).get(1, TimeUnit.SECONDS));
+        assertEquals(2, bridge.requests.get());
+    }
+
     private static final class TestBridge implements PAPIProxyBridge {
         private final TestUser user;
         private final AtomicInteger requests = new AtomicInteger();
         private String response;
         private int failures;
+        private int timeouts;
 
         private TestBridge(TestUser user) {
             this.user = user;
@@ -128,6 +165,9 @@ class PlaceholderAPITest {
         public CompletableFuture<String> createRequest(@NotNull String text, @NotNull OnlineUser requester,
                                                        @NotNull UUID formatFor, boolean wantsJson, long requestTimeout) {
             requests.incrementAndGet();
+            if (timeouts-- > 0) {
+                return new CompletableFuture<>();
+            }
             if (failures-- > 0) {
                 return CompletableFuture.failedFuture(new IllegalStateException("failed"));
             }
@@ -176,6 +216,35 @@ class PlaceholderAPITest {
         @Override
         public @NotNull UUID getUniqueId() {
             return uuid;
+        }
+
+        @Override
+        public void handleMessage(@NotNull PAPIProxyBridge plugin, @NotNull Request message, boolean wantsJson) {
+        }
+    }
+
+    private static final class TestProxyUser implements OnlineUser {
+        private final UUID uuid;
+        private String serverName;
+
+        private TestProxyUser(UUID uuid, String serverName) {
+            this.uuid = uuid;
+            this.serverName = serverName;
+        }
+
+        @Override
+        public @NotNull String getUsername() {
+            return "proxy-user";
+        }
+
+        @Override
+        public @NotNull UUID getUniqueId() {
+            return uuid;
+        }
+
+        @Override
+        public @NotNull String getPlaceholderCacheScope() {
+            return serverName;
         }
 
         @Override
