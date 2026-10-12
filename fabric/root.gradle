@@ -3,6 +3,7 @@ plugins {
 }
 
 preprocess {
+    def fabric260300 = createNode("26.3", 260300, "yarn")
     def fabric260200 = createNode("26.2", 260200, "yarn")
     def fabric260102 = createNode("26.1.2", 260102, "yarn")
     def fabric12111 = createNode("1.21.11", 12111, "yarn")
@@ -14,6 +15,7 @@ preprocess {
     def fabric12100 = createNode("1.20.1", 12100, "yarn")
 
     strictExtraMappings.set(true)
+    fabric260200.link(fabric260300, null)
     fabric260102.link(fabric260200, null)
     fabric12111.link(fabric260200, null)
     fabric12110.link(fabric260200, null)

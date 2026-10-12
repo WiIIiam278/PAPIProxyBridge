@@ -39,5 +39,8 @@ bin/
 ### VS Code ###
 .vscode/
 
+### Python workflow checks ###
+__pycache__/
+
 ### Mac OS ###
 .DS_Store
